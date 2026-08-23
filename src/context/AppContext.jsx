@@ -83,6 +83,14 @@ export function AppProvider({ children }) {
   // AUTH & USER (persisted)
   // ══════════════════════════════════════════════
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage("mamae_logged_in", false);
+  const [userRole, setUserRole] = useLocalStorage("mamae_user_role", "mother"); // "mother" | "doctor"
+  const [doctorUser, setDoctorUser] = useLocalStorage("mamae_doctor_user", {
+    name: "Dr. Leonardo Pinto",
+    crm: "184920",
+    uf: "SP",
+    specialty: "Ginecologia & Obstetrícia",
+    clinic: "Hospital e Maternidade Santa Clara",
+  });
   const [user, setUser] = useLocalStorage("mamae_user", {
     name: "Carla Silva",
     email: "carlasilva@gmail.com",
@@ -440,12 +448,28 @@ export function AppProvider({ children }) {
   // AUTH ACTIONS
   // ══════════════════════════════════════════════
   const login = (email, password) => {
+    setUserRole("mother");
     setUser((prev) => ({ ...prev, email, name: prev.name === "Carla Silva" ? email.split("@")[0] : prev.name }));
     setIsLoggedIn(true);
     navigate("inicio");
   };
 
+  const loginDoctor = ({ crm, uf, name, specialty, clinic }) => {
+    setUserRole("doctor");
+    setDoctorUser((prev) => ({
+      ...prev,
+      crm: crm || prev.crm,
+      uf: uf || prev.uf,
+      name: name || prev.name,
+      specialty: specialty || prev.specialty,
+      clinic: clinic || prev.clinic,
+    }));
+    setIsLoggedIn(true);
+    navigate("portalmedico");
+  };
+
   const signup = (name, email, password) => {
+    setUserRole("mother");
     setUser((prev) => ({ ...prev, name, email }));
     setIsLoggedIn(true);
     navigate("formulario");
@@ -642,7 +666,11 @@ export function AppProvider({ children }) {
   // ══════════════════════════════════════════════
   useEffect(() => {
     if (isLoggedIn && currentScreen === "login") {
-      setCurrentScreen("inicio");
+      if (userRole === "doctor") {
+        setCurrentScreen("portalmedico");
+      } else {
+        setCurrentScreen("inicio");
+      }
     }
   }, []);
 
@@ -654,8 +682,8 @@ export function AppProvider({ children }) {
       value={{
         // Navigation
         currentScreen, history, navigate, goBack,
-        // Auth
-        isLoggedIn, user, setUser, login, signup, saveOnboarding, logout,
+        // Auth & Role
+        isLoggedIn, userRole, user, setUser, doctorUser, setDoctorUser, login, loginDoctor, signup, saveOnboarding, logout,
         // Gestational (Module 2)
         week, setWeek, currentWeek, daysRemaining, progressPercent, trimester,
         // Mood (Module 4)

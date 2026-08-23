@@ -4,12 +4,13 @@ import {
   Stethoscope, User, Heart, Activity, FileText, AlertCircle, 
   Send, CheckCircle2, ChevronRight, ShieldAlert, ArrowLeftRight, 
   Users, MessageSquare, Clipboard, Calendar, Clock, Sparkles, 
-  Scale, BookOpen, Brain, TrendingUp, RefreshCw
+  Scale, BookOpen, Brain, TrendingUp, RefreshCw, LogOut, ShieldCheck
 } from "lucide-react";
 
 export default function PortalMedico() {
   const { 
-    patients, userDocuments, addDocumentFeedback, addNotification, navigate 
+    patients, userDocuments, addDocumentFeedback, addNotification, navigate,
+    doctorUser, userRole, logout
   } = useApp();
 
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'prontuario' | 'exames' | 'condutas'
@@ -151,15 +152,17 @@ export default function PortalMedico() {
       {/* Top Navigation Header */}
       <header className="bg-white border-b border-[#F0DDE4] px-6 py-4 flex items-center justify-between shadow-xs shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#C38B9B] text-white flex items-center justify-center font-bold shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-[#2B6CB0] text-white flex items-center justify-center font-bold shadow-sm">
             <Stethoscope size={20} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-extrabold bg-[#C38B9B] text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-poppins">
+              <span className="text-[9px] font-extrabold bg-[#2B6CB0] text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-poppins">
                 PORTAL CLÍNICO
               </span>
-              <span className="text-[10px] font-bold text-[#8C6B7A]">DR. LEONARDO PINTO</span>
+              <span className="text-[10.5px] font-bold text-[#2B6CB0] font-poppins">
+                CRM/{doctorUser?.uf || "SP"} {doctorUser?.crm || "184.920"} · {doctorUser?.name || "Dr. Leonardo Pinto"}
+              </span>
             </div>
             <h1 className="text-base font-bold text-[#4A4743] font-poppins mt-0.5">
               Painel Multidisciplinar Obstétrico
@@ -167,13 +170,24 @@ export default function PortalMedico() {
           </div>
         </div>
 
-        <button
-          onClick={() => navigate("inicio")}
-          className="flex items-center gap-1.5 bg-[#FAF3F6] hover:bg-[#C38B9B] hover:text-white text-[#4A4743] text-xs font-bold px-3.5 py-2 rounded-xl border border-[#F0DDE4] hover:border-[#C38B9B] cursor-pointer transition-all duration-200 active:scale-95 shadow-xs hover:shadow-sm group"
-        >
-          <ArrowLeftRight size={14} className="group-hover:rotate-180 transition-transform duration-300" />
-          Voltar ao App da Mãe
-        </button>
+        {userRole === "doctor" ? (
+          <button
+            onClick={logout}
+            className="flex items-center gap-1.5 bg-[#FFF5F5] hover:bg-[#E53E3E] text-[#C53030] hover:text-white text-xs font-bold px-3.5 py-2 rounded-xl border border-[#FEB2B2] hover:border-[#E53E3E] cursor-pointer transition-all duration-200 active:scale-95 shadow-xs"
+            title="Desconectar do CRM"
+          >
+            <LogOut size={14} />
+            Sair do CRM
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("inicio")}
+            className="flex items-center gap-1.5 bg-[#FAF3F6] hover:bg-[#C38B9B] hover:text-white text-[#4A4743] text-xs font-bold px-3.5 py-2 rounded-xl border border-[#F0DDE4] hover:border-[#C38B9B] cursor-pointer transition-all duration-200 active:scale-95 shadow-xs hover:shadow-sm group"
+          >
+            <ArrowLeftRight size={14} className="group-hover:rotate-180 transition-transform duration-300" />
+            Voltar ao App da Mãe
+          </button>
+        )}
       </header>
 
       {/* Main Workspace Layout */}

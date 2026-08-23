@@ -11,7 +11,7 @@ import {
   Utensils, Trophy, HeartPulse, ChevronRight, Stethoscope 
 } from "lucide-react";
 
-export default function DesktopHUD({ onViewModeChange, currentViewMode, renderScreenContent }) {
+export default function DesktopHUD({ renderScreenContent }) {
   const { currentScreen, navigate } = useApp();
 
   const navItems = [
@@ -28,10 +28,7 @@ export default function DesktopHUD({ onViewModeChange, currentViewMode, renderSc
   return (
     <div className="w-screen h-screen overflow-hidden bg-[#F2E7EB] flex flex-col font-albert text-[#3D2B33] select-none">
       {/* Top HUD Telemetry Header */}
-      <HUDHeader 
-        onViewModeChange={onViewModeChange} 
-        currentViewMode={currentViewMode} 
-      />
+      <HUDHeader />
 
       {/* Main Operations Body */}
       <div className="flex-1 flex overflow-hidden">

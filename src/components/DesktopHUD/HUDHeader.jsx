@@ -113,25 +113,6 @@ export default function HUDHeader({ onViewModeChange, currentViewMode }) {
           <span className="hidden md:inline">Painel Clínico</span>
         </button>
 
-        {/* Switch to Mobile View Toggle */}
-        <button
-          onClick={() => onViewModeChange(currentViewMode === "hud" ? "mobile" : "hud")}
-          className="flex items-center gap-2 bg-[#FAF3F6] hover:bg-[#F5ECEF] text-[#4A4743] text-xs font-bold px-3 py-2 rounded-xl transition-all border border-[#F0DDE4] cursor-pointer shadow-sm active:scale-95"
-          title="Alternar entre modo Centro de Operações (PC) e modo App Mobile"
-        >
-          {currentViewMode === "hud" ? (
-            <>
-              <Smartphone size={14} className="text-[#C38B9B]" />
-              <span className="hidden sm:inline">Modo Mobile</span>
-            </>
-          ) : (
-            <>
-              <Monitor size={14} className="text-[#C38B9B]" />
-              <span className="hidden sm:inline">Centro de Operações</span>
-            </>
-          )}
-        </button>
-
         {/* Emergency NFC Quick Access */}
         <button
           onClick={() => navigate("cartaonfc")}
