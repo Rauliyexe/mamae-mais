@@ -1,0 +1,37 @@
+# Dependências
+node_modules/
+
+# Builds
+dist/
+dist-apk/
+dist-electron/
+build/
+.output/
+
+# Android Build & Gradle
+.gradle/
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+*.apk
+*.aab
+
+# Local tools & JDK
+.jdk21/
+.kombai/
+
+# Cache
+.vite/
+.next/
+
+# Variáveis privadas
+.env
+.env.local
+.env.*.local
+
+# Sistema & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
