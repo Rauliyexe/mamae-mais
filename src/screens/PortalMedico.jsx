@@ -158,14 +158,14 @@ export default function PortalMedico() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-extrabold bg-[#2B6CB0] text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-poppins">
-                PORTAL CLÍNICO
+                NFCARE · PORTAL CLÍNICO
               </span>
               <span className="text-[10.5px] font-bold text-[#2B6CB0] font-poppins">
-                CRM/{doctorUser?.uf || "SP"} {doctorUser?.crm || "184.920"} · {doctorUser?.name || "Dr. Leonardo Pinto"}
+                CRM/{doctorUser?.uf || "SP"} {doctorUser?.crm || "184.920"} · {doctorUser?.name || "Dr. Leonardo Pinto"} {doctorUser?.clinic ? `(${doctorUser.clinic})` : ""}
               </span>
             </div>
             <h1 className="text-base font-bold text-[#4A4743] font-poppins mt-0.5">
-              Painel Multidisciplinar Obstétrico
+              Painel Multidisciplinar Obstétrico NFCare
             </h1>
           </div>
         </div>

@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { Mail, Lock, Heart, Stethoscope, ShieldCheck, Award, Sparkles, Building2 } from "lucide-react";
+import { 
+  Mail, Lock, Heart, Stethoscope, ShieldCheck, Sparkles, 
+  Building2, UserPlus, LogIn, Award, Activity, CheckCircle2,
+  ArrowRight, Radio
+} from "lucide-react";
 import logoImg from "../assets/logo.png";
 
 const BRAZIL_UFS = [
@@ -9,25 +13,39 @@ const BRAZIL_UFS = [
   "RS", "RO", "RR", "SC", "SP", "SE", "TO"
 ];
 
+const SPECIALTIES = [
+  "Ginecologia & Obstetrícia",
+  "Medicina Fetal",
+  "Obstetrícia de Alto Risco",
+  "Neonatologia & Pediatria",
+  "Clínica Geral & Saúde da Família",
+  "Enfermagem Obstétrica"
+];
+
 export default function Login() {
-  const { login, loginDoctor, navigate } = useApp();
+  const { login, loginDoctor, signupDoctor, navigate } = useApp();
   
-  // Tab: 'mother' | 'doctor'
+  // Main Module Selector: 'mother' (Mamãe+) | 'nfcare' (NFCare Médicos)
   const [authType, setAuthType] = useState("mother");
 
-  // Mother form
+  // Sub-mode for NFCare: 'login' | 'signup'
+  const [nfcareMode, setNfcareMode] = useState("login");
+
+  // Mother form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Doctor form
+  // Doctor / NFCare form state
   const [crm, setCrm] = useState("");
   const [crmUf, setCrmUf] = useState("SP");
   const [doctorPassword, setDoctorPassword] = useState("");
-  const [doctorName, setDoctorName] = useState("Dr. Leonardo Pinto");
+  const [doctorName, setDoctorName] = useState("");
   const [specialty, setSpecialty] = useState("Ginecologia & Obstetrícia");
+  const [clinic, setClinic] = useState("");
 
   const [error, setError] = useState("");
 
+  // Handle Mother Login
   const handleMotherSubmit = (e) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
@@ -42,7 +60,8 @@ export default function Login() {
     login(email, password);
   };
 
-  const handleDoctorSubmit = (e) => {
+  // Handle Doctor Login
+  const handleDoctorLogin = (e) => {
     e.preventDefault();
     const cleanCrm = crm.replace(/\D/g, "");
     if (!cleanCrm) {
@@ -54,36 +73,75 @@ export default function Login() {
       return;
     }
     if (!doctorPassword.trim()) {
-      setError("Por favor, digite sua senha de acesso médico.");
+      setError("Por favor, digite sua senha de acesso.");
       return;
     }
     setError("");
     loginDoctor({
       crm: cleanCrm,
       uf: crmUf,
-      name: doctorName || `Dr(a). CRM ${cleanCrm}`,
-      specialty: specialty || "Obstetrícia",
-      clinic: "Hospital e Maternidade Santa Clara",
+      name: doctorName || `Dr(a). Leonardo Pinto`,
+      specialty: specialty || "Ginecologia & Obstetrícia",
+      clinic: clinic || "Hospital e Maternidade Santa Clara",
     });
   };
 
+  // Handle Doctor Registration (Cadastro NFCare)
+  const handleDoctorSignup = (e) => {
+    e.preventDefault();
+    if (!doctorName.trim()) {
+      setError("Por favor, informe seu nome completo.");
+      return;
+    }
+    const cleanCrm = crm.replace(/\D/g, "");
+    if (!cleanCrm || cleanCrm.length < 4) {
+      setError("Por favor, insira um número de CRM válido.");
+      return;
+    }
+    if (!doctorPassword.trim() || doctorPassword.length < 6) {
+      setError("A senha médica deve ter pelo menos 6 dígitos.");
+      return;
+    }
+    setError("");
+    signupDoctor({
+      name: doctorName,
+      crm: cleanCrm,
+      uf: crmUf,
+      specialty,
+      clinic: clinic || "Hospital / Clínica Médica",
+      password: doctorPassword,
+    });
+  };
+
+  // Fill demo doctor data
   const fillDoctorDemo = () => {
     setCrm("184920");
     setCrmUf("SP");
     setDoctorPassword("medico123");
     setDoctorName("Dr. Leonardo Pinto");
     setSpecialty("Ginecologia & Obstetrícia");
+    setClinic("Hospital e Maternidade Santa Clara");
     setError("");
   };
 
   return (
-    <div className="w-full min-h-full px-5 sm:px-6 pt-8 pb-8 flex flex-col justify-between animate-fadeIn bg-[#FAF8F5]">
-      {/* Top Brand Header */}
+    <div className="w-full min-h-full px-5 sm:px-6 pt-6 pb-6 flex flex-col justify-between animate-fadeIn bg-[#FAF8F5]">
+      {/* Brand Header */}
       <div className="flex flex-col items-center">
-        <img src={logoImg} alt="Logo Mamãe+" className="w-24 h-24 sm:w-28 sm:h-28 object-contain mb-3" />
-        
-        {/* Role Selector Tabs */}
-        <div className="w-full max-w-sm grid grid-cols-2 p-1 bg-white border border-[#F0DDE4] rounded-2xl shadow-xs mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <img src={logoImg} alt="Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain" />
+          <div className="text-left">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C38B9B] font-poppins">
+              ECOSSISTEMA INTEGRADO
+            </span>
+            <h2 className="text-lg font-extrabold text-[#4A4743] font-poppins leading-none">
+              Mamãe+ & NFCare
+            </h2>
+          </div>
+        </div>
+
+        {/* Global Module Switcher (Mamãe+ vs NFCare Médicos) */}
+        <div className="w-full max-w-sm grid grid-cols-2 p-1 bg-white border border-[#F0DDE4] rounded-2xl shadow-xs mb-3.5">
           <button
             type="button"
             onClick={() => {
@@ -97,62 +155,97 @@ export default function Login() {
             }`}
           >
             <Heart size={14} className={authType === "mother" ? "fill-white/30" : ""} />
-            Gestante
+            Mamãe+ (Gestante)
           </button>
 
           <button
             type="button"
             onClick={() => {
-              setAuthType("doctor");
+              setAuthType("nfcare");
               setError("");
             }}
             className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold font-poppins transition-all cursor-pointer ${
-              authType === "doctor"
+              authType === "nfcare"
                 ? "bg-[#2B6CB0] text-white shadow-xs"
                 : "text-[#8C6B7A] hover:text-[#4A4743] hover:bg-[#EBF8FF]"
             }`}
           >
             <Stethoscope size={14} />
-            Médico (CRM)
+            NFCare (Médicos)
           </button>
         </div>
 
+        {/* Dynamic Sub-header */}
         {authType === "mother" ? (
           <>
-            <h1 className="text-[#4A4743] text-[21px] sm:text-[23px] font-bold font-poppins text-center leading-tight">
+            <h1 className="text-[#4A4743] text-[20px] sm:text-[22px] font-bold font-poppins text-center leading-tight">
               Seja bem-vinda de volta!
             </h1>
-            <p className="text-[#8C6B7A] text-[12px] text-center font-albert mt-1.5 leading-relaxed px-1 font-medium max-w-xs">
-              Acompanhe sua gestação com carinho, diário de bordo e acompanhamento com sua equipe.
+            <p className="text-[#8C6B7A] text-[12px] text-center font-albert mt-1 leading-relaxed px-1 font-medium max-w-xs">
+              Acompanhe sua gestação, exames, chutes e saúde com segurança.
             </p>
           </>
         ) : (
-          <>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF8FF] text-[#2B6CB0] border border-[#BEE3F8] text-[10px] font-extrabold uppercase tracking-wider font-poppins mb-1.5">
-              <ShieldCheck size={12} className="text-[#3182CE]" />
-              Acesso Profissional Clínico
+          <div className="text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#EBF8FF] text-[#2B6CB0] border border-[#BEE3F8] text-[9.5px] font-extrabold uppercase tracking-wider font-poppins mb-1">
+              <Radio size={11} className="text-[#3182CE] animate-pulse" />
+              NFCare Clinical Platform
             </div>
-            <h1 className="text-[#1A365D] text-[21px] sm:text-[23px] font-bold font-poppins text-center leading-tight">
-              Portal do Médico
+            <h1 className="text-[#1A365D] text-[19px] sm:text-[21px] font-bold font-poppins text-center leading-tight">
+              Portal do Médico Obstetra
             </h1>
-            <p className="text-[#4A5568] text-[12px] text-center font-albert mt-1.5 leading-relaxed px-1 font-medium max-w-xs">
-              Área exclusiva para obstetras e especialistas acessarem laudos, telemetria e condutas.
+            <p className="text-[#4A5568] text-[11.5px] text-center font-albert mt-0.5 leading-relaxed px-1 font-medium max-w-xs">
+              Telemetria fetal, prontuários integrados via NFC e prescrições.
             </p>
-          </>
+
+            {/* Doctor Sub-tabs: Login vs Cadastro */}
+            <div className="flex items-center justify-center gap-2 mt-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setNfcareMode("login");
+                  setError("");
+                }}
+                className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                  nfcareMode === "login"
+                    ? "bg-[#2B6CB0] text-white shadow-2xs"
+                    : "bg-white text-[#2B6CB0] border border-[#BEE3F8] hover:bg-[#EBF8FF]"
+                }`}
+              >
+                <LogIn size={11} className="inline mr-1" />
+                Login CRM
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNfcareMode("signup");
+                  setError("");
+                }}
+                className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                  nfcareMode === "signup"
+                    ? "bg-[#2B6CB0] text-white shadow-2xs"
+                    : "bg-white text-[#2B6CB0] border border-[#BEE3F8] hover:bg-[#EBF8FF]"
+                }`}
+              >
+                <UserPlus size={11} className="inline mr-1" />
+                Cadastro Médico
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Forms Section */}
-      <div className="mt-4 flex-1 flex flex-col justify-center">
+      {/* Forms Area */}
+      <div className="mt-3 flex-1 flex flex-col justify-center">
         {error && (
-          <div className="mb-4 bg-red-50 text-red-600 text-[11.5px] p-3 rounded-xl font-bold font-albert border border-red-200/50 text-center animate-fadeIn">
+          <div className="mb-3 bg-red-50 text-red-600 text-[11.5px] p-2.5 rounded-xl font-bold font-albert border border-red-200/50 text-center animate-fadeIn">
             {error}
           </div>
         )}
 
-        {authType === "mother" ? (
-          /* MOTHER LOGIN FORM */
-          <form onSubmit={handleMotherSubmit} className="flex flex-col gap-3.5">
+        {/* 1. MOTHER LOGIN */}
+        {authType === "mother" && (
+          <form onSubmit={handleMotherSubmit} className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[#3D2B33] text-[11.5px] font-bold px-1 font-albert">
                 E-mail da Gestante
@@ -164,7 +257,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nome@exemplo.com"
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-[#F0DDE4] rounded-2xl text-[12.5px] text-[#3D2B33] placeholder-[#8C6B7A]/50 outline-none focus:border-[#C38B9B] transition shadow-xs font-medium font-albert"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-[#F0DDE4] rounded-2xl text-[12.5px] text-[#3D2B33] placeholder-[#8C6B7A]/50 outline-none focus:border-[#C38B9B] transition shadow-xs font-medium font-albert"
                 />
               </div>
             </div>
@@ -180,48 +273,49 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Digite sua senha"
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-[#F0DDE4] rounded-2xl text-[12.5px] text-[#3D2B33] placeholder-[#8C6B7A]/50 outline-none focus:border-[#C38B9B] transition shadow-xs font-medium font-albert"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-[#F0DDE4] rounded-2xl text-[12.5px] text-[#3D2B33] placeholder-[#8C6B7A]/50 outline-none focus:border-[#C38B9B] transition shadow-xs font-medium font-albert"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full mt-3 bg-[#C38B9B] hover:bg-[#A87483] text-white font-extrabold text-[13.5px] py-3.5 rounded-full shadow-md transition duration-150 active:scale-[0.98] outline-none cursor-pointer font-albert"
+              className="w-full mt-2 bg-[#C38B9B] hover:bg-[#A87483] text-white font-extrabold text-[13.5px] py-3.5 rounded-full shadow-md transition duration-150 active:scale-[0.98] outline-none cursor-pointer font-albert"
             >
               Entrar como Gestante
             </button>
           </form>
-        ) : (
-          /* DOCTOR CRM LOGIN FORM */
-          <form onSubmit={handleDoctorSubmit} className="flex flex-col gap-3">
-            {/* CRM and UF inputs side by side */}
+        )}
+
+        {/* 2. NFCARE DOCTOR LOGIN */}
+        {authType === "nfcare" && nfcareMode === "login" && (
+          <form onSubmit={handleDoctorLogin} className="flex flex-col gap-2.5">
             <div className="grid grid-cols-3 gap-2">
               <div className="col-span-2 flex flex-col gap-1">
-                <label className="text-[#2D3748] text-[11.5px] font-bold px-1 font-albert">
+                <label className="text-[#2D3748] text-[11px] font-bold px-1 font-albert">
                   Número do CRM
                 </label>
                 <div className="relative">
-                  <Stethoscope size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3182CE]" />
+                  <Stethoscope size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3182CE]" />
                   <input
                     type="text"
                     value={crm}
                     onChange={(e) => setCrm(e.target.value)}
                     placeholder="Ex: 184920"
                     maxLength={10}
-                    className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#BEE3F8] rounded-2xl text-[12.5px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition shadow-xs font-semibold font-albert"
+                    className="w-full pl-10 pr-3 py-2 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition shadow-xs font-semibold font-albert"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[#2D3748] text-[11.5px] font-bold px-1 font-albert">
-                  UF Conselho
+                <label className="text-[#2D3748] text-[11px] font-bold px-1 font-albert">
+                  UF CRM
                 </label>
                 <select
                   value={crmUf}
                   onChange={(e) => setCrmUf(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border border-[#BEE3F8] rounded-2xl text-[12.5px] text-[#1A202C] outline-none focus:border-[#3182CE] transition shadow-xs font-semibold font-albert cursor-pointer"
+                  className="w-full px-2.5 py-2 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] outline-none focus:border-[#3182CE] transition shadow-xs font-semibold font-albert cursor-pointer"
                 >
                   {BRAZIL_UFS.map((uf) => (
                     <option key={uf} value={uf}>
@@ -232,63 +326,144 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Doctor Name / Identification */}
             <div className="flex flex-col gap-1">
-              <label className="text-[#2D3748] text-[11.5px] font-bold px-1 font-albert">
-                Nome do Profissional
+              <label className="text-[#2D3748] text-[11px] font-bold px-1 font-albert">
+                Senha de Acesso Clínico
               </label>
               <div className="relative">
-                <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#718096]" />
-                <input
-                  type="text"
-                  value={doctorName}
-                  onChange={(e) => setDoctorName(e.target.value)}
-                  placeholder="Dr. Nome Sobrenome"
-                  className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#BEE3F8] rounded-2xl text-[12.5px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition shadow-xs font-medium font-albert"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[#2D3748] text-[11.5px] font-bold px-1 font-albert">
-                Senha / Código de Acesso CFM
-              </label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#718096]" />
+                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#718096]" />
                 <input
                   type="password"
                   value={doctorPassword}
                   onChange={(e) => setDoctorPassword(e.target.value)}
-                  placeholder="Digite sua senha médica"
-                  className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#BEE3F8] rounded-2xl text-[12.5px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition shadow-xs font-medium font-albert"
+                  placeholder="Sua senha médica"
+                  className="w-full pl-10 pr-3 py-2 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition shadow-xs font-medium font-albert"
                 />
               </div>
             </div>
 
-            {/* Quick Demo Pre-fill Button */}
+            {/* Quick Demo Filler */}
             <button
               type="button"
               onClick={fillDoctorDemo}
-              className="w-full py-2 px-3 bg-[#EBF8FF] hover:bg-[#BEE3F8]/60 text-[#2B6CB0] border border-[#BEE3F8] rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full py-1.5 px-2.5 bg-[#EBF8FF] hover:bg-[#BEE3F8]/60 text-[#2B6CB0] border border-[#BEE3F8] rounded-xl text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Sparkles size={13} className="text-[#3182CE]" />
+              <Sparkles size={12} className="text-[#3182CE]" />
               Preencher Demo: Dr. Leonardo Pinto (CRM/SP 184920)
             </button>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full mt-1 bg-gradient-to-r from-[#2B6CB0] to-[#3182CE] hover:from-[#2C5282] hover:to-[#2B6CB0] text-white font-extrabold text-[13.5px] py-3.5 rounded-full shadow-md transition duration-150 active:scale-[0.98] outline-none cursor-pointer font-albert"
+              className="w-full mt-1 bg-gradient-to-r from-[#2B6CB0] to-[#3182CE] hover:from-[#2C5282] hover:to-[#2B6CB0] text-white font-extrabold text-[13px] py-3 rounded-full shadow-md transition duration-150 active:scale-[0.98] outline-none cursor-pointer font-albert"
             >
-              Acessar Portal Clínico (CRM)
+              Acessar Portal NFCare
+            </button>
+          </form>
+        )}
+
+        {/* 3. NFCARE DOCTOR SIGNUP (CADASTRO MÉDICO) */}
+        {authType === "nfcare" && nfcareMode === "signup" && (
+          <form onSubmit={handleDoctorSignup} className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[#2D3748] text-[10.5px] font-bold px-1 font-albert">
+                Nome Completo do Médico
+              </label>
+              <input
+                type="text"
+                value={doctorName}
+                onChange={(e) => setDoctorName(e.target.value)}
+                placeholder="Ex: Dra. Mariana Vasconcelos"
+                className="w-full px-3 py-1.5 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition font-medium"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-2 flex flex-col gap-0.5">
+                <label className="text-[#2D3748] text-[10.5px] font-bold px-1 font-albert">
+                  CRM
+                </label>
+                <input
+                  type="text"
+                  value={crm}
+                  onChange={(e) => setCrm(e.target.value)}
+                  placeholder="Ex: 219840"
+                  maxLength={10}
+                  className="w-full px-3 py-1.5 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition font-semibold"
+                />
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[#2D3748] text-[10.5px] font-bold px-1 font-albert">
+                  UF
+                </label>
+                <select
+                  value={crmUf}
+                  onChange={(e) => setCrmUf(e.target.value)}
+                  className="w-full px-2 py-1.5 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] outline-none focus:border-[#3182CE] transition font-semibold cursor-pointer"
+                >
+                  {BRAZIL_UFS.map((uf) => (
+                    <option key={uf} value={uf}>{uf}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[#2D3748] text-[10.5px] font-bold px-1 font-albert">
+                  Especialidade
+                </label>
+                <select
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  className="w-full px-2 py-1.5 bg-white border border-[#BEE3F8] rounded-xl text-[11px] text-[#1A202C] outline-none focus:border-[#3182CE] transition font-medium cursor-pointer"
+                >
+                  {SPECIALTIES.map((esp) => (
+                    <option key={esp} value={esp}>{esp}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[#2D3748] text-[10.5px] font-bold px-1 font-albert">
+                  Hospital / Clínica
+                </label>
+                <input
+                  type="text"
+                  value={clinic}
+                  onChange={(e) => setClinic(e.target.value)}
+                  placeholder="Ex: Maternidade Pro Matre"
+                  className="w-full px-3 py-1.5 bg-white border border-[#BEE3F8] rounded-xl text-[11px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[#2D3748] text-[10.5px] font-bold px-1 font-albert">
+                Criar Senha de Acesso
+              </label>
+              <input
+                type="password"
+                value={doctorPassword}
+                onChange={(e) => setDoctorPassword(e.target.value)}
+                placeholder="Mínimo 6 dígitos"
+                className="w-full px-3 py-1.5 bg-white border border-[#BEE3F8] rounded-xl text-[12px] text-[#1A202C] placeholder-[#A0AEC0] outline-none focus:border-[#3182CE] transition font-medium"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full mt-1 bg-gradient-to-r from-[#2B6CB0] to-[#3182CE] hover:from-[#2C5282] text-white font-extrabold text-[12.5px] py-2.5 rounded-full shadow-md transition duration-150 active:scale-[0.98] outline-none cursor-pointer font-albert flex items-center justify-center gap-1.5"
+            >
+              <CheckCircle2 size={14} />
+              Concluir Cadastro & Acessar NFCare
             </button>
           </form>
         )}
       </div>
 
-      {/* Footer Links */}
-      <div className="mt-6 flex flex-col items-center">
+      {/* Footer Details */}
+      <div className="mt-4 flex flex-col items-center">
         {authType === "mother" ? (
           <p className="text-[#8C6B7A] text-[12px] font-medium font-albert">
             Ainda não tem uma conta?{" "}
@@ -300,9 +475,9 @@ export default function Login() {
             </button>
           </p>
         ) : (
-          <div className="flex items-center gap-1.5 text-[11px] text-[#718096] font-medium font-albert text-center">
+          <div className="flex items-center gap-1.5 text-[10.5px] text-[#718096] font-medium font-albert text-center">
             <ShieldCheck size={13} className="text-[#38A169]" />
-            <span>Ambiente seguro em conformidade com o CFM e LGPD Saúde.</span>
+            <span>NFCare Medical Cloud · Conformidade CFM nº 2.314/2022 e LGPD.</span>
           </div>
         )}
       </div>

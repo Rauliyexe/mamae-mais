@@ -110,8 +110,8 @@ export default function Cadastro() {
       </form>
 
       {/* Login Link */}
-      <div className="mt-6 flex flex-col items-center">
-        <p className="text-[#8C6B7A] text-[12px] font-medium" style={{ fontFamily: "Albert Sans" }}>
+      <div className="mt-6 flex flex-col items-center gap-2 text-center">
+        <p className="text-[#8C6B7A] text-[12px] font-medium font-albert">
           Já tem uma conta?{" "}
           <button
             onClick={() => navigate("login")}
@@ -120,6 +120,14 @@ export default function Cadastro() {
             Faça Login
           </button>
         </p>
+
+        <button
+          onClick={() => navigate("login")}
+          className="text-[#2B6CB0] text-[11.5px] font-bold hover:underline cursor-pointer flex items-center justify-center gap-1 bg-[#EBF8FF] px-3 py-1.5 rounded-xl border border-[#BEE3F8]"
+        >
+          <span>É médico ou obstetra? Cadastre-se no NFCare</span>
+          <span>&rarr;</span>
+        </button>
       </div>
     </div>
   );

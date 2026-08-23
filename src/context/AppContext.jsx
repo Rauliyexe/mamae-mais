@@ -468,6 +468,19 @@ export function AppProvider({ children }) {
     navigate("portalmedico");
   };
 
+  const signupDoctor = ({ name, crm, uf, specialty, clinic, password }) => {
+    setUserRole("doctor");
+    setDoctorUser({
+      name: name || `Dr(a). CRM ${crm}`,
+      crm: crm || "184920",
+      uf: uf || "SP",
+      specialty: specialty || "Ginecologia & Obstetrícia",
+      clinic: clinic || "Consultório Particular",
+    });
+    setIsLoggedIn(true);
+    navigate("portalmedico");
+  };
+
   const signup = (name, email, password) => {
     setUserRole("mother");
     setUser((prev) => ({ ...prev, name, email }));
@@ -683,7 +696,7 @@ export function AppProvider({ children }) {
         // Navigation
         currentScreen, history, navigate, goBack,
         // Auth & Role
-        isLoggedIn, userRole, user, setUser, doctorUser, setDoctorUser, login, loginDoctor, signup, saveOnboarding, logout,
+        isLoggedIn, userRole, user, setUser, doctorUser, setDoctorUser, login, loginDoctor, signupDoctor, signup, saveOnboarding, logout,
         // Gestational (Module 2)
         week, setWeek, currentWeek, daysRemaining, progressPercent, trimester,
         // Mood (Module 4)
