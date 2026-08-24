@@ -106,11 +106,11 @@ export default function HUDHeader({ onViewModeChange, currentViewMode }) {
         {/* Doctor Portal Button */}
         <button
           onClick={() => navigate("portalmedico")}
-          className="flex items-center gap-1.5 bg-[#EBF8FF] hover:bg-[#3182CE] text-[#2B6CB0] hover:text-white border border-[#BEE3F8] hover:border-[#3182CE] text-xs font-extrabold px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md active:scale-95 hover:scale-[1.02] group"
-          title="Acessar Portal Clínico do Médico"
+          className="flex items-center gap-1.5 bg-[#0A161B] hover:bg-[#00F2C3] text-[#00F2C3] hover:text-[#070F12] border border-[#00F2C3]/30 hover:border-[#00F2C3] text-xs font-extrabold px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(0,242,195,0.4)] active:scale-95 group"
+          title="Acessar Portal Clínico Presenz"
         >
-          <Stethoscope size={14} className="group-hover:rotate-12 transition-transform duration-200" />
-          <span className="hidden md:inline">Painel Clínico</span>
+          <Stethoscope size={14} className="group-hover:rotate-12 transition-transform duration-200 text-[#00F2C3] group-hover:text-[#070F12]" />
+          <span className="hidden md:inline font-poppins">Presenz Clínico</span>
         </button>
 
         {/* Emergency NFC Quick Access */}

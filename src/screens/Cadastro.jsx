@@ -123,9 +123,9 @@ export default function Cadastro() {
 
         <button
           onClick={() => navigate("login")}
-          className="text-[#2B6CB0] text-[11.5px] font-bold hover:underline cursor-pointer flex items-center justify-center gap-1 bg-[#EBF8FF] px-3 py-1.5 rounded-xl border border-[#BEE3F8]"
+          className="text-[#00F2C3] text-[11.5px] font-bold hover:underline cursor-pointer flex items-center justify-center gap-1.5 bg-[#0A161B] px-3.5 py-1.5 rounded-xl border border-[#00F2C3]/30 shadow-xs"
         >
-          <span>É médico ou obstetra? Cadastre-se no NFCare</span>
+          <span>É médico ou obstetra? Cadastre-se no Presenz</span>
           <span>&rarr;</span>
         </button>
       </div>

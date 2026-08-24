@@ -69,15 +69,15 @@ export default function DesktopHUD({ renderScreenContent }) {
                 onClick={() => navigate("portalmedico")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   currentScreen === "portalmedico"
-                    ? "bg-[#EBF8FF] text-[#2B6CB0] border border-[#BEE3F8] shadow-xs"
-                    : "text-[#2B6CB0] bg-[#EBF8FF]/50 hover:bg-[#EBF8FF] hover:text-[#1A365D] hover:shadow-xs border border-transparent hover:border-[#BEE3F8]"
+                    ? "bg-[#00F2C3]/20 text-[#00F2C3] border border-[#00F2C3]/40 shadow-xs"
+                    : "text-[#00F2C3] bg-[#0A161B] hover:bg-[#00F2C3]/20 hover:text-white hover:shadow-xs border border-[#00F2C3]/20"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Stethoscope size={16} className="text-[#3182CE]" />
-                  <span>Portal do Médico</span>
+                  <Stethoscope size={16} className="text-[#00F2C3]" />
+                  <span>Portal Presenz (Médico)</span>
                 </div>
-                <ChevronRight size={13} className="text-[#3182CE]" />
+                <ChevronRight size={13} className="text-[#00F2C3]" />
               </button>
             </div>
           </div>
