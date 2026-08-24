@@ -1,13 +1,12 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
 import TopBar from "../components/TopBar";
-import { Bell, CheckCheck, Trash2, Trophy, Calendar, BookHeart, Activity, Sparkles } from "lucide-react";
+import { Bell, CheckCheck, Trash2, Calendar, BookHeart, Activity, Sparkles } from "lucide-react";
 
 const ICONS = {
   health: Activity,
   diary: BookHeart,
   calendar: Calendar,
-  achievement: Trophy,
   week: Sparkles,
 };
 

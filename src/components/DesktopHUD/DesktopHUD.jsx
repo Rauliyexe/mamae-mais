@@ -8,7 +8,7 @@ import NFCHubWidget from "./NFCHubWidget";
 
 import { 
   Home, BookHeart, Calendar, Users, Sparkles, User, 
-  Utensils, Trophy, HeartPulse, ChevronRight, Stethoscope 
+  Utensils, HeartPulse, ChevronRight, Stethoscope 
 } from "lucide-react";
 
 export default function DesktopHUD({ renderScreenContent }) {
@@ -21,7 +21,6 @@ export default function DesktopHUD({ renderScreenContent }) {
     { key: "calendario", label: "Agenda & Consultas", Icon: Calendar },
     { key: "receitas", label: "Nutrição & Receitas", Icon: Utensils },
     { key: "comunidade", label: "Fórum de Mães", Icon: Users },
-    { key: "conquistas", label: "Conquistas", Icon: Trophy },
     { key: "perfil", label: "Perfil & Cartão", Icon: User },
   ];
 

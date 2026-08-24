@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { PREGNANCY_DATA } from "../data/mockData";
-import { ACHIEVEMENTS } from "../data/achievements";
 import useLocalStorage from "../hooks/useLocalStorage";
 
 const AppContext = createContext();
@@ -471,45 +470,6 @@ export function AppProvider({ children }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ══════════════════════════════════════════════
-  // ACHIEVEMENTS (Module 6)
-  // ══════════════════════════════════════════════
-  const [unlockedAchievements, setUnlockedAchievements] = useLocalStorage("mamae_achievements", []);
-  const [newAchievement, setNewAchievement] = useState(null); // For toast animation
-
-  const checkAchievements = useCallback(() => {
-    const state = {
-      diaryEntries,
-      initialDiaryCount: PREGNANCY_DATA.initialDiaryEntries.length,
-      diaryStreak,
-      hydrationDays,
-      activityDays,
-      chatMessagesSent,
-      userPostCount,
-      kickSessions,
-      currentWeek,
-      moodHistory,
-      weightHistory,
-      calendarEvents,
-      onboardingCompleted,
-    };
-
-    ACHIEVEMENTS.forEach((ach) => {
-      if (!unlockedAchievements.includes(ach.id) && ach.check(state)) {
-        setUnlockedAchievements((prev) => [...prev, ach.id]);
-        setNewAchievement(ach);
-        addNotification("achievement", ach.title, ach.description, "conquistas");
-        // Auto-dismiss toast after 4 seconds
-        setTimeout(() => setNewAchievement(null), 4000);
-      }
-    });
-  }, [diaryEntries, diaryStreak, hydrationDays, activityDays, chatMessagesSent, userPostCount, kickSessions, currentWeek, moodHistory, weightHistory, calendarEvents, onboardingCompleted, unlockedAchievements]);
-
-  // Run achievement checks whenever relevant state changes
-  useEffect(() => {
-    if (isLoggedIn) checkAchievements();
-  }, [diaryEntries.length, chatMessagesSent, userPostCount, kickSessions.length, moodHistory.length, weightHistory.length, isLoggedIn]);
-
-  // ══════════════════════════════════════════════
   // DAILY TIP (Module 7)
   // ══════════════════════════════════════════════
   const getDailyTip = () => {
@@ -854,8 +814,6 @@ export function AppProvider({ children }) {
         chatHistory, addChatMessage, clearChatHistory, chatMessagesSent, getDailyTip,
         // Notifications (Module 3)
         notifications, addNotification, markNotificationRead, markAllNotificationsRead, clearNotifications, unreadCount,
-        // Achievements (Module 6)
-        unlockedAchievements, newAchievement, ACHIEVEMENTS_LIST: ACHIEVEMENTS,
         // Onboarding
         onboardingCompleted,
         // Medical Portal & Document Library
