@@ -25,6 +25,12 @@ export default function PWAInstallBanner() {
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIosDevice);
 
+    // Check if previously captured globally in index.html
+    if (window.deferredPWAInstallPrompt) {
+      setDeferredPrompt(window.deferredPWAInstallPrompt);
+      setShowBanner(true);
+    }
+
     // Check if dismissed recently in this session
     const isDismissed = sessionStorage.getItem("pwa_banner_dismissed");
     if (isDismissed) return;
@@ -32,48 +38,64 @@ export default function PWAInstallBanner() {
     // Listen for beforeinstallprompt on Android/Chrome/Edge
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
+      window.deferredPWAInstallPrompt = e;
       setDeferredPrompt(e);
       setShowBanner(true);
     };
 
+    const handlePromptAvailable = () => {
+      if (window.deferredPWAInstallPrompt) {
+        setDeferredPrompt(window.deferredPWAInstallPrompt);
+        setShowBanner(true);
+      }
+    };
+
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("pwa-prompt-available", handlePromptAvailable);
 
     // If on iOS and not standalone, show the banner after a gentle delay
     if (isIosDevice && !isStandalone) {
       const timer = setTimeout(() => {
         setShowBanner(true);
-      }, 1500);
+      }, 1200);
       return () => clearTimeout(timer);
     }
 
-    // Also show banner on desktop/android after brief delay if prompt wasn't fired yet
+    // Show banner after brief delay if prompt wasn't dismissed
     const fallbackTimer = setTimeout(() => {
-      if (!isStandalone && !isDismissed) {
+      if (!isStandalone && !sessionStorage.getItem("pwa_banner_dismissed")) {
         setShowBanner(true);
       }
-    }, 2000);
+    }, 1500);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("pwa-prompt-available", handlePromptAvailable);
       clearTimeout(fallbackTimer);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (isIOS) {
-      setShowIOSModal(true);
-      return;
-    }
+    const promptEvent = deferredPrompt || window.deferredPWAInstallPrompt;
 
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setShowBanner(false);
+    if (promptEvent) {
+      try {
+        promptEvent.prompt();
+        const choiceResult = await promptEvent.userChoice;
+        if (choiceResult && choiceResult.outcome === "accepted") {
+          setShowBanner(false);
+          setIsInstalled(true);
+        }
+        setDeferredPrompt(null);
+        window.deferredPWAInstallPrompt = null;
+      } catch (err) {
+        console.error("Erro ao executar instalador PWA:", err);
+        setShowIOSModal(true);
       }
-      setDeferredPrompt(null);
+    } else if (isIOS) {
+      setShowIOSModal(true);
     } else {
-      // Fallback instructions modal if native prompt is unavailable (e.g. desktop browsers)
+      // Direct instructions modal if native prompt was not supplied by browser
       setShowIOSModal(true);
     }
   };
@@ -145,6 +167,27 @@ export default function PWAInstallBanner() {
               Tenha a experiência completa de aplicativo diretamente na sua tela de início.
             </p>
 
+            <div className="flex bg-[#FAF3F6] p-1 rounded-xl mb-4">
+              <button
+                type="button"
+                onClick={() => setIsIOS(false)}
+                className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                  !isIOS ? "bg-white text-[#C38B9B] shadow-sm" : "text-[#8C6B7A]"
+                }`}
+              >
+                Android / Chrome
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsIOS(true)}
+                className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                  isIOS ? "bg-white text-[#C38B9B] shadow-sm" : "text-[#8C6B7A]"
+                }`}
+              >
+                iPhone / iPad (iOS)
+              </button>
+            </div>
+
             <div className="space-y-3.5 mb-6 text-xs text-[#523A46]">
               {isIOS ? (
                 <>
@@ -155,7 +198,7 @@ export default function PWAInstallBanner() {
                     <div>
                       <p className="font-bold text-[#3D2B33]">Toque no botão Compartilhar</p>
                       <p className="text-[#8C6B7A] text-[11px] flex items-center gap-1 mt-0.5">
-                        Na barra do Safari, clique no ícone <Share size={12} className="text-[#007AFF]" />
+                        Na barra inferior do Safari, clique no ícone <Share size={12} className="text-[#007AFF]" />
                       </p>
                     </div>
                   </div>
@@ -167,7 +210,7 @@ export default function PWAInstallBanner() {
                     <div>
                       <p className="font-bold text-[#3D2B33]">Adicionar à Tela de Início</p>
                       <p className="text-[#8C6B7A] text-[11px] flex items-center gap-1 mt-0.5">
-                        Role a lista e selecione <PlusSquare size={12} className="text-[#C38B9B]" /> <b>Adicionar à Tela de Início</b>
+                        Role as opções e toque em <PlusSquare size={12} className="text-[#C38B9B]" /> <b>Adicionar à Tela de Início</b>
                       </p>
                     </div>
                   </div>
@@ -177,9 +220,9 @@ export default function PWAInstallBanner() {
                       3
                     </div>
                     <div>
-                      <p className="font-bold text-[#3D2B33]">Pronto! Abra o ícone</p>
+                      <p className="font-bold text-[#3D2B33]">Pronto! Abra pelo ícone</p>
                       <p className="text-[#8C6B7A] text-[11px] mt-0.5">
-                        O Mamãe+ abrirá em tela cheia como um app nativo.
+                        O Mamãe+ abrirá em tela inteira sem barras de navegação do browser.
                       </p>
                     </div>
                   </div>
@@ -193,7 +236,7 @@ export default function PWAInstallBanner() {
                     <div>
                       <p className="font-bold text-[#3D2B33]">Menu do Navegador</p>
                       <p className="text-[#8C6B7A] text-[11px] mt-0.5">
-                        Clique nos 3 pontinhos (⋮) ou no ícone de instalação na barra de endereço.
+                        Toque no menu de três pontos (⋮) no canto superior ou no aviso de instalação.
                       </p>
                     </div>
                   </div>
@@ -205,7 +248,7 @@ export default function PWAInstallBanner() {
                     <div>
                       <p className="font-bold text-[#3D2B33]">Instalar Aplicativo</p>
                       <p className="text-[#8C6B7A] text-[11px] mt-0.5">
-                        Selecione "Instalar Mamãe+" ou "Adicionar à Tela Inicial".
+                        Toque em <b>"Instalar aplicativo"</b> ou <b>"Adicionar à tela inicial"</b>.
                       </p>
                     </div>
                   </div>

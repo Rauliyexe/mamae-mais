@@ -60,9 +60,9 @@ export default function PWALayout({ children, nav, renderScreenContent }) {
 
   // 5. Mobile Mode: strictly native mobile full-screen experience with scrollable content
   return (
-    <div className="w-full h-full min-h-screen bg-[#FDF5F8] flex flex-col select-none font-albert overflow-hidden relative">
+    <div className="w-full h-[100dvh] min-h-[100dvh] bg-[#FDF5F8] flex flex-col select-none font-albert overflow-hidden relative">
       {/* Mobile Screen Content Wrapper */}
-      <div className="flex-1 overflow-y-auto scrollbar-none pb-[82px] relative bg-[#FDF5F8]">
+      <div className="flex-1 w-full overflow-y-auto overscroll-contain scrollbar-none pb-[88px] relative bg-[#FDF5F8]">
         {children}
       </div>
 

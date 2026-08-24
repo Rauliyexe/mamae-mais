@@ -96,7 +96,7 @@ function AppContent() {
   const hideMascot = ["login", "cadastro", "formulario", "portalmedico", "bibliotecaexames"].includes(currentScreen);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full min-h-[100dvh]">
       <PWALayout 
         nav={isLoggedIn && currentScreen !== "portalmedico" ? <BottomNav /> : null}
         renderScreenContent={renderScreen}

@@ -27,7 +27,7 @@ export default function BottomNav() {
   const activeTab = getActiveTab();
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md rounded-t-[28px] shadow-[0_-6px_28px_rgba(180,77,117,0.06)] px-2 pt-2 pb-[max(12px,env(safe-area-inset-bottom))] flex justify-between z-40 border-t border-[#F0DDE4]">
+    <nav className="fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-md rounded-t-[28px] shadow-[0_-6px_28px_rgba(180,77,117,0.06)] px-2 pt-2 pb-[max(12px,env(safe-area-inset-bottom))] flex justify-between z-40 border-t border-[#F0DDE4]">
       {items.map(({ key, label, Icon }) => {
         const isActive = activeTab === key;
         return (
@@ -57,6 +57,6 @@ export default function BottomNav() {
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
