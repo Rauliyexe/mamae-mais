@@ -7,8 +7,18 @@ import {
   Users, MessageSquare, Clipboard, Calendar, Clock, Sparkles, 
   Scale, BookOpen, Brain, TrendingUp, RefreshCw, LogOut, ShieldCheck,
   Radio, Wifi, HeartPulse, Zap, AlertTriangle, Eye, Download,
-  Check, Info, FileSpreadsheet, Play, Pause, Thermometer, Shield
+  Check, Info, FileSpreadsheet, Play, Pause, Thermometer, Shield,
+  Baby, Droplet, Layers, Filter, PlusCircle
 } from "lucide-react";
+
+const SPECIALTY_MODULES = [
+  { id: "all", label: "Todas Especialidades", Icon: Layers, color: "text-[#7EC8C0]" },
+  { id: "obstetricia", label: "Obstetrícia (Mamãe+)", Icon: Heart, color: "text-[#E6A4B4]" },
+  { id: "cardiologia", label: "Cardiologia", Icon: HeartPulse, color: "text-[#F39C9C]" },
+  { id: "endocrinologia", label: "Endocrinologia", Icon: Droplet, color: "text-[#A8E6CF]" },
+  { id: "pediatria", label: "Pediatria", Icon: Baby, color: "text-[#FFD3B6]" },
+  { id: "clinica", label: "Clínica Geral", Icon: Stethoscope, color: "text-[#8BE3D7]" },
+];
 
 export default function PortalMedico() {
   const { 
@@ -16,14 +26,17 @@ export default function PortalMedico() {
     doctorUser, userRole, logout 
   } = useApp();
 
+  const [selectedSpecialtyFilter, setSelectedSpecialtyFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'prontuario' | 'exames' | 'condutas'
   const [selectedPatientId, setSelectedPatientId] = useState("carla");
   const [recommendation, setRecommendation] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [selectedExame, setSelectedExame] = useState("Ultrassom Morfológico 2º Tri");
+  const [selectedExame, setSelectedExame] = useState("Holter 24h & ECG Digital");
 
   // Telemetry simulation states
   const [liveFHR, setLiveFHR] = useState(144);
+  const [liveHR, setLiveHR] = useState(78);
+  const [liveGlucose, setLiveGlucose] = useState(114);
   const [isTelemetryRunning, setIsTelemetryRunning] = useState(true);
   const [nfcSignalStrength, setNfcSignalStrength] = useState("98%");
 
@@ -35,64 +48,25 @@ export default function PortalMedico() {
   const [aiPrompt, setAiPrompt] = useState("");
   const [isDrafting, setIsDrafting] = useState(false);
 
-  // Live FHR fluctuation effect for telemetry realism
+  // Live vitals fluctuation effect
   useEffect(() => {
     if (!isTelemetryRunning) return;
     const interval = setInterval(() => {
       setLiveFHR(prev => Math.min(154, Math.max(136, prev + (Math.floor(Math.random() * 5) - 2))));
+      setLiveHR(prev => Math.min(94, Math.max(68, prev + (Math.floor(Math.random() * 3) - 1))));
+      setLiveGlucose(prev => Math.min(130, Math.max(90, prev + (Math.floor(Math.random() * 5) - 2))));
     }, 2000);
     return () => clearInterval(interval);
   }, [isTelemetryRunning]);
 
-  const activePatient = patients.find((p) => p.id === selectedPatientId) || patients[0];
+  // Filter patients by selected specialty
+  const filteredPatients = selectedSpecialtyFilter === "all"
+    ? patients
+    : patients.filter(p => p.specialty === selectedSpecialtyFilter);
+
+  // Active patient object
+  const activePatient = patients.find((p) => p.id === selectedPatientId) || filteredPatients[0] || patients[0];
   const patientDocs = userDocuments.filter((d) => d.patientEmail === activePatient.email);
-
-  // Mocks for clinical data
-  const getWeightHistoryMock = (patientId) => {
-    if (patientId === "carla") {
-      return [
-        { date: "2026-03-15", weight: 61.2, week: 6, diff: "+0.0 kg" },
-        { date: "2026-04-18", weight: 62.5, week: 10, diff: "+1.3 kg" },
-        { date: "2026-05-20", weight: 63.8, week: 14, diff: "+2.6 kg" },
-        { date: "2026-06-15", weight: 64.8, week: 17, diff: "+3.6 kg" }
-      ];
-    } else if (patientId === "ana") {
-      return [
-        { date: "2026-03-10", weight: 67.0, week: 8, diff: "+0.0 kg" },
-        { date: "2026-05-12", weight: 69.4, week: 16, diff: "+2.4 kg" },
-        { date: "2026-07-10", weight: 71.8, week: 24, diff: "+4.8 kg" },
-        { date: "2026-08-08", weight: 73.2, week: 28, diff: "+6.2 kg" }
-      ];
-    } else {
-      return [
-        { date: "2026-06-01", weight: 57.0, week: 4, diff: "+0.0 kg" },
-        { date: "2026-07-02", weight: 57.6, week: 8, diff: "+0.6 kg" },
-        { date: "2026-08-01", weight: 58.0, week: 12, diff: "+1.0 kg" }
-      ];
-    }
-  };
-
-  const getSymptomTimelineMock = (patientId) => {
-    if (patientId === "carla") {
-      return [
-        { date: "Hoje", mood: "Ótima", water: "8/8 copos", kicks: "12 chutes", notes: "Sem inchaços, sentindo chutes leves e regulares." },
-        { date: "Ontem", mood: "Bem", water: "6/8 copos", kicks: "10 chutes", notes: "Leve cansaço no final da tarde, sono reparador." },
-        { date: "3 dias atrás", mood: "Ótima", water: "8/8 copos", kicks: "14 chutes", notes: "Dormiu muito bem, caminhada matinal de 25 min." }
-      ];
-    } else if (patientId === "ana") {
-      return [
-        { date: "Hoje", mood: "Confusa", water: "5/8 copos", kicks: "6 chutes", notes: "Dores lombares leves, sensação de barriga dura após esforço." },
-        { date: "Ontem", mood: "Triste", water: "4/8 copos", kicks: "8 chutes", notes: "Ansiedade moderada e inchaço nos pés no final do dia." },
-        { date: "4 dias atrás", mood: "Bem", water: "7/8 copos", kicks: "11 chutes", notes: "Consulta pré-natal de rotina realizada." }
-      ];
-    } else {
-      return [
-        { date: "Hoje", mood: "Ótima", water: "8/8 copos", kicks: "Não aplicável (1º Tri)", notes: "Náuseas matinais diminuindo gradativamente." },
-        { date: "Ontem", mood: "Ótima", water: "9/8 copos", kicks: "Não aplicável (1º Tri)", notes: "Excelente disposição para rotina diária." },
-        { date: "5 dias atrás", mood: "Bem", water: "8/8 copos", kicks: "Não aplicável (1º Tri)", notes: "Exame laboratorial inicial agendado." }
-      ];
-    }
-  };
 
   const handleSendRecommendation = (e) => {
     e?.preventDefault();
@@ -101,8 +75,8 @@ export default function PortalMedico() {
     const docName = doctorUser?.name || "Dr. Leonardo Pinto";
     addNotification(
       "health",
-      `Orientação Presenz - ${docName}`,
-      `${docName} enviou uma nova orientação clínica: "${recommendation}"`,
+      `Presenz Tele-Orientação - ${docName}`,
+      `${docName} emitiu nova orientação clínica: "${recommendation}"`,
       "inicio"
     );
 
@@ -115,10 +89,10 @@ export default function PortalMedico() {
     addNotification(
       "calendar",
       "Exame Prescrito via Presenz",
-      `Nova solicitação de exame: ${selectedExame}. Verifique detalhes na agenda.`,
+      `Nova solicitação de exame: ${selectedExame}. Sincronizado no prontuário.`,
       "calendario"
     );
-    setSuccessMsg(`Exame "${selectedExame}" sincronizado na agenda de ${activePatient.name}!`);
+    setSuccessMsg(`Exame "${selectedExame}" sincronizado com sucesso para ${activePatient.name}!`);
     setTimeout(() => setSuccessMsg(""), 4000);
   };
 
@@ -130,7 +104,7 @@ export default function PortalMedico() {
     addNotification(
       "health",
       "Laudo Analisado pelo Especialista",
-      `${docName} inseriu parecer clínico no seu exame.`,
+      `${docName} inseriu parecer clínico oficial.`,
       "bibliotecaexames"
     );
 
@@ -140,32 +114,43 @@ export default function PortalMedico() {
     setTimeout(() => setSuccessMsg(""), 4000);
   };
 
-  // Simulated AI clinical draft assistant
+  // Simulated Multi-Specialty AI Copilot
   const handleDraftAICopilot = () => {
     if (!aiPrompt.trim()) return;
     setIsDrafting(true);
     setTimeout(() => {
       let draftText = "";
       const name = activePatient.name.split(" ")[0];
-      if (aiPrompt.toLowerCase().includes("liquido") || aiPrompt.toLowerCase().includes("líquido")) {
-        draftText = `Conduta Presenz para ILA (Líquido Amniótico) - Paciente ${name}: Recomenda-se aumentar aporte hídrico para no mínimo 2.8L/dia (11-12 copos de água mineral). Repouso relativo em decúbito lateral esquerdo para otimização da perfusão útero-placentária. Agendar reavaliação ultrassonográfica de ILA e Dopplerfluxometria em 8 dias. Em caso de perda de líquido súbita, acionar botão SOS do app Presenz.`;
-      } else if (aiPrompt.toLowerCase().includes("pressao") || aiPrompt.toLowerCase().includes("pressão")) {
-        draftText = `Protocolo Presenz para Monitoramento Pressórico - Paciente ${name}: Aferir pressão arterial 2x/dia (pela manhã e às 19h), registrando no diário do app. Dieta hipossódica moderada. Se PA >= 140x90 mmHg associada a cefaleia refratária, escotomas cintilantes ou epigastralgia, encaminhar-se imediatamente ao pronto-atendimento obstétrico.`;
+      const spec = activePatient.specialty || "clinica";
+
+      if (spec === "obstetricia") {
+        if (aiPrompt.toLowerCase().includes("liquido")) {
+          draftText = `Conduta Presenz (Obstetrícia) para ${name}: Aporte hídrico oral aumentado para 2.8L/dia. Repouso relativo em decúbito lateral esquerdo. Reavaliação ultrassonográfica de ILA em 8 dias. Monitorar movimentos fetais via app.`;
+        } else {
+          draftText = `Parecer Obstétrico Presenz para ${name} (${activePatient.weeks}ª Sem): Pré-natal com boa evolução fetal. Manter suplementação polivitamínica e rotina de aferição pressórica diária. Retorno presencial em 15 dias.`;
+        }
+      } else if (spec === "cardiologia") {
+        draftText = `Conduta Cardiológica Presenz para ${name}: Holter 24h evidenciando ritmo sinusal estável sem pausas patológicas. Manter bloqueador beta / anti-hipertensivo conforme prescrito. Dieta com restrição moderada de sódio e monitoramento diário da PA via Smart Tag Presenz. Retorno com novo ECG em 30 dias.`;
+      } else if (spec === "endocrinologia") {
+        draftText = `Protocolo de Ajuste Glicêmico Presenz para ${name}: Sensor CGM registrando 84% de Tempo no Alvo (TIR). Manter contagem de carboidratos com relação insulina/carbo prescrita. Monitorar glicemias pré e pós-prandiais. Próxima coleta de HbA1c em 60 dias.`;
+      } else if (spec === "pediatria") {
+        draftText = `Avaliação Pediátrica Presenz para ${name}: Marcos do neurodesenvolvimento compatíveis com a faixa etária. Introdução alimentar adequada com boa aceitação hídrica. Vacinas em dia. Agendada próxima consulta de puericultura para o próximo mês.`;
       } else {
-        draftText = `Parecer Clínico Integrado Presenz para ${name} (${activePatient.weeks}ª semana): Gestação evoluindo com parâmetros biométricos favoráveis. Manter suplementação com polivitamínico pré-natal e sulfato ferroso. Atividade física leve autorizada (30 min de hidroginástica ou caminhada). Próximo retorno clínico presencial agendado para 15 dias.`;
+        draftText = `Conduta Clínica Presenz para ${name}: Parâmetros hemodinâmicos compensados. Manter medicações de uso contínuo, hidratação adequada e atividade física supervisionada. Solicito painel metabólico de rotina.`;
       }
+
       setRecommendation(draftText);
       setIsDrafting(false);
       setAiPrompt("");
     }, 1000);
   };
 
-  const totalMothers = patients.length;
-  const alertMothers = patients.filter(p => p.status === "alerta").length;
+  const totalPatients = patients.length;
+  const alertCount = patients.filter(p => p.status === "alerta").length;
 
   return (
     <div className="w-full min-h-screen bg-[#0C1618] text-[#E2E8F0] font-albert flex flex-col pb-20 selection:bg-[#7EC8C0]/30 selection:text-white">
-      {/* Background Soft Pastel Glows */}
+      {/* Background Soft Ambient Pastel Glows */}
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-[#7EC8C0]/5 rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="fixed bottom-10 right-10 w-[30rem] h-[30rem] bg-[#5BB0A6]/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
@@ -178,7 +163,7 @@ export default function PortalMedico() {
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#162B30] border border-[#7EC8C0]/25 text-[#98D8D0] text-[10px] font-extrabold uppercase tracking-widest font-poppins">
             <span className="w-2 h-2 rounded-full bg-[#7EC8C0] animate-pulse" />
             <Radio size={12} />
-            <span>NFC Bio-Telemetry · Conectado</span>
+            <span>NFC Bio-Telemetry · Multi-Especialidades</span>
           </div>
         </div>
 
@@ -193,7 +178,7 @@ export default function PortalMedico() {
               {doctorUser?.name || "Dr. Leonardo Pinto"}
             </span>
             <span className="text-[9.5px] text-[#8CA9B0]">
-              {doctorUser?.clinic || "Hospital e Maternidade Santa Clara"}
+              {doctorUser?.specialty || "Medicina Integrada"} · {doctorUser?.clinic || "Hospital Santa Clara"}
             </span>
           </div>
 
@@ -217,11 +202,46 @@ export default function PortalMedico() {
               className="flex items-center gap-1.5 bg-[#162B30] hover:bg-[#7EC8C0] text-[#7EC8C0] hover:text-[#0C1618] text-xs font-bold px-3.5 py-2 rounded-xl border border-[#7EC8C0]/30 hover:border-[#7EC8C0] cursor-pointer transition-all duration-200 active:scale-95 shadow-sm group"
             >
               <ArrowLeftRight size={14} className="group-hover:rotate-180 transition-transform duration-300" />
-              <span>Voltar ao App da Mãe</span>
+              <span>Voltar ao App Mamãe+</span>
             </button>
           )}
         </div>
       </header>
+
+      {/* ================= MULTI-SPECIALTY SELECTOR BAR ================= */}
+      <div className="bg-[#0E1B1F] border-b border-[#7EC8C0]/15 px-6 py-2.5 overflow-x-auto scrollbar-none">
+        <div className="max-w-7xl mx-auto flex items-center gap-2">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#8CA9B0] font-poppins shrink-0 mr-2 flex items-center gap-1">
+            <Filter size={12} className="text-[#7EC8C0]" />
+            Especialidade:
+          </span>
+          <div className="flex items-center gap-2">
+            {SPECIALTY_MODULES.map(({ id, label, Icon, color }) => {
+              const isSelected = selectedSpecialtyFilter === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setSelectedSpecialtyFilter(id);
+                    if (id !== "all") {
+                      const firstInSpec = patients.find(p => p.specialty === id);
+                      if (firstInSpec) setSelectedPatientId(firstInSpec.id);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold font-poppins whitespace-nowrap transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-[#7EC8C0] text-[#0C1618] shadow-sm font-black"
+                      : "bg-[#14262C] text-[#A6C5CB] hover:bg-[#1A3138] hover:text-white border border-[#7EC8C0]/15"
+                  }`}
+                >
+                  <Icon size={13} className={isSelected ? "text-[#0C1618]" : color} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* ================= MAIN WORKSPACE ================= */}
       <main className="flex-1 w-full max-w-7xl mx-auto p-4 lg:p-6 space-y-5">
@@ -239,43 +259,49 @@ export default function PortalMedico() {
           {/* Card 1: Total Patients */}
           <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-2xl p-3.5 shadow-sm relative overflow-hidden group hover:border-[#7EC8C0]/40 transition-all">
             <div className="flex justify-between items-center text-[#8CA9B0]">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins">Gestantes Ativas</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins">Total de Pacientes</span>
               <Users size={15} className="text-[#7EC8C0]" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-white font-poppins">{totalMothers}</span>
-              <span className="text-[10px] text-[#7EC8C0] font-bold">100% monitoradas</span>
+              <span className="text-2xl font-black text-white font-poppins">{totalPatients}</span>
+              <span className="text-[10px] text-[#7EC8C0] font-bold">Multi-Clínico</span>
             </div>
           </div>
 
-          {/* Card 2: FCF Live Telemetry */}
+          {/* Card 2: Adaptive Specialty Metric */}
           <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-2xl p-3.5 shadow-sm relative overflow-hidden group hover:border-[#7EC8C0]/40 transition-all">
             <div className="flex justify-between items-center text-[#8CA9B0]">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins">Batimentos Cardiofetais</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins">
+                {activePatient.specialty === "obstetricia" ? "FCF Cardiofetal" : activePatient.specialty === "endocrinologia" ? "Glicemia Atual (CGM)" : "Frequência Cardíaca"}
+              </span>
               <HeartPulse size={15} className="text-[#7EC8C0] animate-pulse" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-[#8BE3D7] font-poppins">{liveFHR}</span>
-              <span className="text-[10px] text-[#A2C2C9] font-bold">BPM (Normal)</span>
+              <span className="text-2xl font-black text-[#8BE3D7] font-poppins">
+                {activePatient.specialty === "obstetricia" ? liveFHR : activePatient.specialty === "endocrinologia" ? liveGlucose : liveHR}
+              </span>
+              <span className="text-[10px] text-[#A2C2C9] font-bold">
+                {activePatient.specialty === "endocrinologia" ? "mg/dL" : "BPM"} (Estável)
+              </span>
             </div>
           </div>
 
           {/* Card 3: Alert Cases */}
           <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#C56B6B]/30 rounded-2xl p-3.5 shadow-sm relative overflow-hidden group hover:border-[#C56B6B]/60 transition-all">
             <div className="flex justify-between items-center text-[#8CA9B0]">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins text-[#F39C9C]">Atenção / Risco</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins text-[#F39C9C]">Casos em Alerta</span>
               <AlertTriangle size={15} className="text-[#F39C9C]" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-[#F39C9C] font-poppins">{alertMothers}</span>
-              <span className="text-[10px] text-[#F39C9C]/80 font-bold">PA Limítrofe</span>
+              <span className="text-2xl font-black text-[#F39C9C] font-poppins">{alertCount}</span>
+              <span className="text-[10px] text-[#F39C9C]/80 font-bold">Monitoramento Ativo</span>
             </div>
           </div>
 
-          {/* Card 4: NFC Telemetry Status */}
+          {/* Card 4: Universal NFC Status */}
           <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-2xl p-3.5 shadow-sm relative overflow-hidden group hover:border-[#7EC8C0]/40 transition-all">
             <div className="flex justify-between items-center text-[#8CA9B0]">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins">Cartão NFC SOS</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider font-poppins">NFC Tag Health SOS</span>
               <Radio size={15} className="text-[#7EC8C0]" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
@@ -289,28 +315,28 @@ export default function PortalMedico() {
         <div className="bg-[#112025]/90 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-2xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-[#8CA9B0] uppercase tracking-wider font-poppins px-1">
-              Selecionar Paciente:
+              Prontuário Ativo:
             </span>
             <div className="flex items-center gap-1.5 flex-wrap">
-              {patients.map((p) => {
-                const isSelected = p.id === selectedPatientId;
+              {filteredPatients.map((p) => {
+                const isSelected = p.id === activePatient.id;
                 return (
                   <button
                     key={p.id}
                     onClick={() => setSelectedPatientId(p.id)}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold font-poppins transition-all cursor-pointer ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold font-poppins transition-all cursor-pointer ${
                       isSelected
                         ? "bg-gradient-to-r from-[#7EC8C0] to-[#5BB0A6] text-[#0C1618] shadow-sm font-black"
                         : "bg-[#0A1619] text-[#A6C5CB] border border-[#7EC8C0]/15 hover:border-[#7EC8C0]/40 hover:text-white"
                     }`}
                   >
                     <span>{p.name}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-md ${
                       p.status === "alerta" 
                         ? (isSelected ? "bg-red-950 text-white" : "bg-red-500/20 text-red-300") 
                         : (isSelected ? "bg-[#0C1618]/25 text-[#0C1618]" : "bg-[#7EC8C0]/15 text-[#98D8D0]")
                     }`}>
-                      {p.weeks}ª Sem
+                      {p.specialty === "obstetricia" ? `${p.weeks}ª Sem` : p.specialtyLabel.split(" ")[0]}
                     </span>
                   </button>
                 );
@@ -378,19 +404,25 @@ export default function PortalMedico() {
         {/* ================= TAB 1: TELEMETRIA & BIO-MONITOR ================= */}
         {activeTab === "overview" && (
           <div className="space-y-5 animate-fadeIn">
-            {/* Live Cardiotocography ECG Monitor */}
+            {/* Live Cardiotocography or Adaptive Vital Monitor */}
             <div className="bg-[#112025]/90 backdrop-blur-xl border border-[#7EC8C0]/25 rounded-3xl p-5 shadow-md relative overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#7EC8C0]/15">
                 <div className="flex items-center gap-3">
                   <PresenzIcon size={34} />
                   <div>
                     <h3 className="font-poppins font-bold text-white text-sm flex items-center gap-2">
-                      Cardiotocografia & Traçado Cardíaco Fetal Contínuo (FCF)
+                      {activePatient.specialty === "obstetricia" 
+                        ? "Cardiotocografia & Frequência Cardíaca Fetal (FCF)" 
+                        : activePatient.specialty === "cardiologia"
+                        ? "Eletrocardiograma Contínuo DII & Telemetria Cardíaca"
+                        : activePatient.specialty === "endocrinologia"
+                        ? "Curva Contínua de Glicose (Sensor CGM)"
+                        : "Monitor Biométrico de Sinais Vitais em Tempo Real"}
                       <span className="px-2 py-0.5 rounded-full bg-[#7EC8C0]/15 text-[#98D8D0] text-[9.5px] font-extrabold border border-[#7EC8C0]/30">
-                        SINAL PRESENZ ATIVO
+                        {activePatient.specialtyLabel}
                       </span>
                     </h3>
-                    <p className="text-[11px] text-[#8CA9B0]">Paciente: {activePatient.name} · {activePatient.weeks}ª Semana de Gestação</p>
+                    <p className="text-[11px] text-[#8CA9B0]">Paciente: {activePatient.name} · Idade: {activePatient.age || 30} anos · NFC: {activePatient.nfcTag}</p>
                   </div>
                 </div>
 
@@ -400,20 +432,21 @@ export default function PortalMedico() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#091518] hover:bg-[#7EC8C0]/15 border border-[#7EC8C0]/25 text-[#98D8D0] text-xs font-bold transition-colors cursor-pointer"
                   >
                     {isTelemetryRunning ? <Pause size={12} /> : <Play size={12} />}
-                    <span>{isTelemetryRunning ? "Pausar Traçado" : "Retomar Traçado"}</span>
+                    <span>{isTelemetryRunning ? "Pausar" : "Retomar"}</span>
                   </button>
                   <span className="text-xl font-black text-[#8BE3D7] font-poppins">
-                    {liveFHR} <span className="text-xs text-[#A2C2C9] font-normal">BPM</span>
+                    {activePatient.specialty === "obstetricia" ? liveFHR : activePatient.specialty === "endocrinologia" ? liveGlucose : liveHR}
+                    <span className="text-xs text-[#A2C2C9] font-normal ml-1">
+                      {activePatient.specialty === "endocrinologia" ? "mg/dL" : "BPM"}
+                    </span>
                   </span>
                 </div>
               </div>
 
-              {/* Animated ECG Canvas / SVG Graphic */}
+              {/* Animated Bio Waveform */}
               <div className="mt-4 h-32 w-full bg-[#081214] rounded-2xl border border-[#7EC8C0]/20 p-2 relative overflow-hidden flex items-center">
-                {/* Grid Lines */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#7ec8c008_1px,transparent_1px),linear-gradient(to_bottom,#7ec8c008_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
                 
-                {/* Soft Pastel Pulse Wave */}
                 <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 800 100">
                   <defs>
                     <linearGradient id="ecgGradPastel" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -423,7 +456,6 @@ export default function PortalMedico() {
                     </linearGradient>
                   </defs>
                   
-                  {/* Waveform Path */}
                   <path
                     d="M 0,50 L 80,50 L 95,30 L 110,75 L 125,18 L 140,82 L 155,50 L 250,50 L 265,35 L 280,70 L 295,20 L 310,80 L 325,50 L 420,50 L 435,32 L 450,72 L 465,15 L 480,85 L 495,50 L 600,50 L 615,30 L 630,75 L 645,18 L 660,82 L 675,50 L 760,50 L 775,32 L 790,75 L 800,50"
                     fill="none"
@@ -435,95 +467,108 @@ export default function PortalMedico() {
                   />
                 </svg>
 
-                {/* Status Indicator in Corner */}
                 <div className="absolute bottom-2 right-3 text-[10px] text-[#98D8D0] font-mono bg-[#091518]/90 px-2 py-0.5 rounded border border-[#7EC8C0]/25">
-                  Variabilidade Fetal: 8-15 bpm · Reativo
+                  Sensor Status: Presenz Live Sync · Sinal 100%
                 </div>
               </div>
 
-              {/* Biomarkers Grid */}
+              {/* Biomarkers Grid (Adaptive by Patient) */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-[#7EC8C0]/15">
                 <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
-                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Pressão Materna</span>
-                  <p className="text-sm font-black text-white mt-0.5">
-                    {activePatient.id === "ana" ? "138/88 mmHg" : "118/76 mmHg"}
+                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Pressão Arterial</span>
+                  <p className="text-sm font-black text-white mt-0.5">{activePatient.vitals?.bp || "120/80 mmHg"}</p>
+                </div>
+                <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
+                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Oximetria SpO2</span>
+                  <p className="text-sm font-black text-[#8BE3D7] mt-0.5">{activePatient.vitals?.spo2 || "99%"}</p>
+                </div>
+                <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
+                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Temperatura</span>
+                  <p className="text-sm font-black text-white mt-0.5">{activePatient.vitals?.temp || "36.5°C"}</p>
+                </div>
+                <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
+                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">
+                    {activePatient.specialty === "obstetricia" ? "Índice ILA" : activePatient.specialty === "cardiologia" ? "Variabilidade HRV" : "Glicose / Parâmetro"}
+                  </span>
+                  <p className="text-sm font-black text-[#A8E6CF] mt-0.5">
+                    {activePatient.specialty === "obstetricia" ? "14.2 cm (Normal)" : activePatient.specialty === "cardiologia" ? "42 ms" : activePatient.vitals?.glucose || "Normal"}
                   </p>
-                </div>
-                <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
-                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Índice ILA</span>
-                  <p className="text-sm font-black text-[#8BE3D7] mt-0.5">14.2 cm (Límpido)</p>
-                </div>
-                <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
-                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Chutes Hoje</span>
-                  <p className="text-sm font-black text-white mt-0.5">12 chutes registrados</p>
-                </div>
-                <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
-                  <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Hidratação Hoje</span>
-                  <p className="text-sm font-black text-[#A8E6CF] mt-0.5">8 / 8 copos (Meta 100%)</p>
                 </div>
               </div>
             </div>
 
-            {/* Daily Symptoms & Clinical Highlights */}
+            {/* Daily History & AI Quick Copilot */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Daily Diary Feed */}
               <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-5 shadow-sm">
                 <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider mb-3 flex items-center gap-2 text-[#98D8D0]">
                   <BookOpen size={14} className="text-[#7EC8C0]" />
-                  Diário e Relatos da Gestante (Sincronização Presenz)
+                  Histórico Clínico Recente & Sincronização Presenz
                 </h4>
                 <div className="space-y-2.5">
-                  {getSymptomTimelineMock(activePatient.id).map((item, idx) => (
-                    <div key={idx} className="bg-[#091518] p-3 rounded-2xl border border-[#7EC8C0]/15 flex flex-col gap-1">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-white">{item.date}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#7EC8C0]/15 text-[#98D8D0] font-bold">
-                          Humor: {item.mood}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#A6C5CB]">{item.notes}</p>
-                      <div className="text-[10px] text-[#8CA9B0] flex gap-3 mt-1 font-medium">
-                        <span>💧 Água: {item.water}</span>
-                        <span>👶 Chutes: {item.kicks}</span>
-                      </div>
+                  <div className="bg-[#091518] p-3 rounded-2xl border border-[#7EC8C0]/15 flex flex-col gap-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white">Última leitura via Tag NFC</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#7EC8C0]/15 text-[#98D8D0] font-bold">
+                        Tag: {activePatient.nfcTag}
+                      </span>
                     </div>
-                  ))}
+                    <p className="text-xs text-[#A6C5CB]">
+                      Condição: {activePatient.riskConditions}. Todos os dados de medicação e histórico clínico sincronizados na nuvem Presenz.
+                    </p>
+                  </div>
+                  <div className="bg-[#091518] p-3 rounded-2xl border border-[#7EC8C0]/15 flex flex-col gap-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white">Alergias e Restrições</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">
+                        Alergias: {activePatient.allergies}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#A6C5CB]">Tipo Sanguíneo: {activePatient.bloodType} · Classificação: {activePatient.specialtyLabel}</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Presenz AI Quick Clinical Copilot */}
+              {/* Presenz AI Copilot */}
               <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
                 <div>
                   <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider mb-2 flex items-center gap-2 text-[#98D8D0]">
                     <Brain size={14} className="text-[#7EC8C0]" />
-                    Copiloto de Conduta Clínica Presenz AI
+                    Copiloto Multidisciplinar Presenz AI
                   </h4>
                   <p className="text-xs text-[#8CA9B0] mb-3">
-                    Gere minutas de orientações obstétricas baseadas nos dados clínicos e exames de {activePatient.name}.
+                    Gere laudos, pareceres e condutas personalizadas para {activePatient.name} ({activePatient.specialtyLabel}).
                   </p>
 
                   <div className="space-y-2 mb-3">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => { setAiPrompt("Parecer de rotina e ajuste medicamentoso"); }}
+                        className="px-2.5 py-1 bg-[#091518] hover:bg-[#7EC8C0]/15 text-[#98D8D0] border border-[#7EC8C0]/20 rounded-lg text-[10.5px] font-medium transition cursor-pointer"
+                      >
+                        🩺 Parecer de Rotina
+                      </button>
                       <button
                         type="button"
                         onClick={() => { setAiPrompt("Orientação sobre líquido amniótico e hidratação"); }}
                         className="px-2.5 py-1 bg-[#091518] hover:bg-[#7EC8C0]/15 text-[#98D8D0] border border-[#7EC8C0]/20 rounded-lg text-[10.5px] font-medium transition cursor-pointer"
                       >
-                        💧 Líquido Amniótico
+                        💧 Aporte Hídrico
                       </button>
                       <button
                         type="button"
-                        onClick={() => { setAiPrompt("Conduta para pressão arterial limítrofe"); }}
+                        onClick={() => { setAiPrompt("Conduta para controle de pressão arterial"); }}
                         className="px-2.5 py-1 bg-[#091518] hover:bg-[#7EC8C0]/15 text-[#98D8D0] border border-[#7EC8C0]/20 rounded-lg text-[10.5px] font-medium transition cursor-pointer"
                       >
-                        🩺 Pressão Limítrofe
+                        ❤️ Controle Pressórico
                       </button>
                     </div>
 
                     <textarea
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
-                      placeholder="Descreva o que deseja orientar à paciente (ex: repouso, hidratação, vitaminas)..."
+                      placeholder="Descreva a conduta ou orientação para o paciente..."
                       className="w-full h-20 bg-[#081214] border border-[#7EC8C0]/25 rounded-xl p-2.5 text-xs text-white placeholder-[#688A92] outline-none focus:border-[#7EC8C0] transition resize-none font-medium"
                     />
                   </div>
@@ -541,14 +586,14 @@ export default function PortalMedico() {
 
                 {recommendation && (
                   <div className="mt-3 p-3 bg-[#162B30] border border-[#7EC8C0]/30 rounded-xl animate-fadeIn">
-                    <p className="text-[10px] font-bold text-[#98D8D0] uppercase">Minuta Pronta para Envio:</p>
+                    <p className="text-[10px] font-bold text-[#98D8D0] uppercase">Minuta Pronta para Transmissão:</p>
                     <p className="text-xs text-white mt-1 leading-relaxed">{recommendation}</p>
                     <button
                       onClick={handleSendRecommendation}
                       className="mt-2.5 w-full py-1.5 bg-[#7EC8C0] hover:bg-[#6EB8B0] text-[#0C1618] font-black text-xs rounded-lg transition active:scale-95 flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Send size={12} />
-                      Transmitir Parecer ao Celular da Mãe
+                      Transmitir Parecer ao Paciente
                     </button>
                   </div>
                 )}
@@ -571,67 +616,61 @@ export default function PortalMedico() {
                     <h3 className="font-poppins font-bold text-white text-sm">{activePatient.name}</h3>
                     <p className="text-xs text-[#8CA9B0]">{activePatient.email}</p>
                     <span className="inline-block mt-1 text-[9.5px] px-2 py-0.5 rounded-full bg-[#7EC8C0]/15 text-[#98D8D0] font-extrabold border border-[#7EC8C0]/30">
-                      Cartão Presenz NFC Pareado
+                      Cartão Presenz NFC: {activePatient.nfcTag}
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-2.5 text-xs">
                   <div className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-[#8CA9B0]">Especialidade:</span>
+                    <span className="font-bold text-[#8BE3D7]">{activePatient.specialtyLabel}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-white/5">
                     <span className="text-[#8CA9B0]">Tipo Sanguíneo:</span>
                     <span className="font-bold text-white">{activePatient.bloodType}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-[#8CA9B0]">Alergias:</span>
+                    <span className="text-[#8CA9B0]">Alergias Conhecidas:</span>
                     <span className="font-bold text-white">{activePatient.allergies}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-[#8CA9B0]">Idade Gestacional:</span>
-                    <span className="font-bold text-[#8BE3D7]">{activePatient.weeks} semanas ({activePatient.trimester}º Tri)</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-[#8CA9B0]">Data Prevista (DPP):</span>
-                    <span className="font-bold text-white">{activePatient.dueDate}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-[#8CA9B0]">Classificação Obstétrica:</span>
-                    <span className="font-bold text-white">{activePatient.isFirstPregnancy ? "Primigesta (1ª Gestação)" : "Multigesta"}</span>
+                    <span className="text-[#8CA9B0]">Condição Clínica:</span>
+                    <span className="font-bold text-white">{activePatient.riskConditions}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Weight History and Progression */}
-              <div className="lg:col-span-2 bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-5 shadow-sm">
-                <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider mb-3 flex items-center gap-2 text-[#98D8D0]">
-                  <Scale size={14} className="text-[#7EC8C0]" />
-                  Curva e Histórico de Ganho Ponderal (Peso Gestacional)
+              {/* Patient Bio Details & Multi-clinical Card */}
+              <div className="lg:col-span-2 bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-5 shadow-sm space-y-4">
+                <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2 text-[#98D8D0]">
+                  <Clipboard size={14} className="text-[#7EC8C0]" />
+                  Ficha Médica Integrada Presenz Cloud
                 </h4>
-                
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-[#7EC8C0]/20 text-[#8CA9B0] text-[10.5px] font-extrabold uppercase font-poppins">
-                        <th className="pb-2">Data da Pesagem</th>
-                        <th className="pb-2">Semana</th>
-                        <th className="pb-2">Peso Registrado</th>
-                        <th className="pb-2">Variação / Meta OMS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {getWeightHistoryMock(activePatient.id).map((w, idx) => (
-                        <tr key={idx} className="hover:bg-white/5 transition">
-                          <td className="py-2.5 text-white font-medium">{w.date}</td>
-                          <td className="py-2.5 text-[#8BE3D7] font-bold">{w.week}ª Sem</td>
-                          <td className="py-2.5 text-white font-bold">{w.weight} kg</td>
-                          <td className="py-2.5">
-                            <span className="px-2 py-0.5 rounded-md bg-[#7EC8C0]/15 text-[#98D8D0] text-[10px] font-extrabold">
-                              {w.diff}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-[#091518] p-3 rounded-2xl border border-[#7EC8C0]/15 text-center">
+                    <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Idade / Sexo</span>
+                    <p className="text-sm font-black text-white mt-0.5">{activePatient.age || 30} anos · {activePatient.gender || "F"}</p>
+                  </div>
+                  <div className="bg-[#091518] p-3 rounded-2xl border border-[#7EC8C0]/15 text-center">
+                    <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Módulo do Sistema</span>
+                    <p className="text-sm font-black text-[#8BE3D7] mt-0.5">{activePatient.specialtyLabel}</p>
+                  </div>
+                  <div className="bg-[#091518] p-3 rounded-2xl border border-[#7EC8C0]/15 text-center">
+                    <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Status de Monitoramento</span>
+                    <p className="text-sm font-black text-[#A8E6CF] mt-0.5 capitalize">{activePatient.status}</p>
+                  </div>
+                </div>
+
+                <div className="bg-[#091518] p-4 rounded-2xl border border-[#7EC8C0]/15 space-y-2">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <ShieldCheck size={14} className="text-[#7EC8C0]" />
+                    Sincronização com o Ecossistema Mamãe+ & Presenz
+                  </span>
+                  <p className="text-xs text-[#A6C5CB] leading-relaxed">
+                    Este prontuário está unificado com a rede de saúde em tempo real do Presenz. Os registros de sinais vitais, exames e orientações médicas são automaticamente transmitidos para os dispositivos autorizados do paciente.
+                  </p>
                 </div>
               </div>
             </div>
@@ -646,7 +685,7 @@ export default function PortalMedico() {
                 <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-10 text-center">
                   <FileText size={36} className="mx-auto text-[#8CA9B0] mb-2 opacity-50" />
                   <p className="text-white font-bold text-sm">Nenhum exame anexado para {activePatient.name}.</p>
-                  <p className="text-xs text-[#8CA9B0] mt-1">A gestante pode enviar PDFs e ultrassons pelo aplicativo móvel Mamãe+.</p>
+                  <p className="text-xs text-[#8CA9B0] mt-1">Exames podem ser enviados pelo paciente ou anexados na clínica.</p>
                 </div>
               ) : (
                 patientDocs.map((doc) => (
@@ -667,7 +706,7 @@ export default function PortalMedico() {
                           </span>
                         </div>
                         <p className="text-xs text-[#8CA9B0] mt-0.5">
-                          Enviado em {doc.date} · Categoria: <strong className="text-white">{doc.category}</strong>
+                          Enviado em {doc.date} · Categoria: <strong className="text-white">{doc.type}</strong>
                         </p>
                         {doc.feedback && (
                           <div className="mt-2 p-2.5 bg-[#081214] rounded-xl border border-[#7EC8C0]/20 text-xs text-white">
@@ -730,26 +769,27 @@ export default function PortalMedico() {
                 <div>
                   <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider mb-2 flex items-center gap-2 text-[#98D8D0]">
                     <Calendar size={14} className="text-[#7EC8C0]" />
-                    Prescrição Rápida de Exames Complementares
+                    Prescrição Rápida de Exames ({activePatient.specialtyLabel})
                   </h4>
                   <p className="text-xs text-[#8CA9B0] mb-4">
-                    Insira exames na agenda oficial de {activePatient.name} com instruções prévias de preparo.
+                    Insira solicitações de exames diagnósticos na agenda oficial de {activePatient.name}.
                   </p>
 
                   <div className="space-y-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-white font-poppins">Tipo de Exame Obstétrico:</label>
+                      <label className="text-xs font-bold text-white font-poppins">Tipo de Exame Especializado:</label>
                       <select
                         value={selectedExame}
                         onChange={(e) => setSelectedExame(e.target.value)}
                         className="w-full p-2.5 bg-[#081214] border border-[#7EC8C0]/30 rounded-xl text-xs text-white outline-none focus:border-[#7EC8C0] font-medium cursor-pointer"
                       >
-                        <option value="Ultrassom Morfológico 2º Tri">Ultrassom Morfológico de 2º Trimestre</option>
-                        <option value="Dopplerfluxometria Obstétrica">Dopplerfluxometria Útero-Placentária</option>
-                        <option value="Ecocardiograma Fetal">Ecocardiograma Fetal com Mapeamento de Fluxo</option>
-                        <option value="Curva Glicêmica (TOTG 75g)">Curva Glicêmica Oral (TOTG 75g - Rastreio DMG)</option>
-                        <option value="Cultura de Estreptococo B (GBS)">Cultura Vaginal/Retal para Estreptococo B (GBS)</option>
-                        <option value="Cardiotocografia Basal em Consultório">Cardiotocografia Basal em Consultório</option>
+                        <option value="Holter 24h & ECG Digital">Holter 24 Horas & Eletrocardiograma Digital</option>
+                        <option value="Monitoramento Contínuo de Glicose (Sensor CGM)">Monitoramento Contínuo de Glicose (Sensor CGM)</option>
+                        <option value="Ultrassom Morfológico 2º Tri">Ultrassom Morfológico 2º Trimestre</option>
+                        <option value="Dopplerfluxometria Obstétrica">Dopplerfluxometria Obstétrica</option>
+                        <option value="Ecocardiograma com Mapeamento de Fluxo">Ecocardiograma com Mapeamento de Fluxo</option>
+                        <option value="Painel Lipídico & Função Renal">Painel Lipídico & Função Renal (Creatinina/Ureia)</option>
+                        <option value="Puericultura & Avaliação de Desenvolvimento">Puericultura & Avaliação de Desenvolvimento Infantil</option>
                       </select>
                     </div>
                   </div>
@@ -761,7 +801,7 @@ export default function PortalMedico() {
                   className="mt-5 w-full py-2.5 bg-gradient-to-r from-[#7EC8C0] to-[#5BB0A6] hover:from-[#6EB8B0] text-[#0C1618] font-black text-xs rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Send size={13} />
-                  Prescrever & Sincronizar na Agenda da Mãe
+                  Prescrever & Sincronizar no Prontuário
                 </button>
               </div>
 
@@ -770,16 +810,16 @@ export default function PortalMedico() {
                 <div>
                   <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider mb-2 flex items-center gap-2 text-[#98D8D0]">
                     <MessageSquare size={14} className="text-[#7EC8C0]" />
-                    Orientação Direta ao App da Gestante
+                    Orientação Direta ao Paciente
                   </h4>
                   <p className="text-xs text-[#8CA9B0] mb-4">
-                    Envie mensagens de conduta direta com selo e carimbo do CRM {doctorUser?.crm || "184920"}.
+                    Envie condutas com carimbo e assinatura digital do CRM {doctorUser?.crm || "184920"}.
                   </p>
 
                   <textarea
                     value={recommendation}
                     onChange={(e) => setRecommendation(e.target.value)}
-                    placeholder="Digite a recomendação clínica (ex: repouso, dieta, ajuste de vitaminas)..."
+                    placeholder="Digite a orientação médica (ex: dieta, medicação, repouso, ajuste posológico)..."
                     className="w-full h-28 bg-[#081214] border border-[#7EC8C0]/30 rounded-xl p-3 text-xs text-white placeholder-[#688A92] outline-none focus:border-[#7EC8C0] transition resize-none font-medium"
                   />
                 </div>
