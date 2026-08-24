@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import PresenzLogo, { PresenzIcon } from "../components/PresenzLogo";
+import PresenzPrescriptionModal from "../components/PresenzPrescriptionModal";
+import PresenzTelemedModal from "../components/PresenzTelemedModal";
+import PresenzNFCHubModal from "../components/PresenzNFCHubModal";
+import PresenzScheduleView from "../components/PresenzScheduleView";
+import PresenzAnalyticsView from "../components/PresenzAnalyticsView";
+import PresenzChatDirectModal from "../components/PresenzChatDirectModal";
 import { 
   Stethoscope, User, Heart, Activity, FileText, AlertCircle, 
   Send, CheckCircle2, ChevronRight, ShieldAlert, ArrowLeftRight, 
@@ -8,7 +14,7 @@ import {
   Scale, BookOpen, Brain, TrendingUp, RefreshCw, LogOut, ShieldCheck,
   Radio, Wifi, HeartPulse, Zap, AlertTriangle, Eye, Download,
   Check, Info, FileSpreadsheet, Play, Pause, Thermometer, Shield,
-  Baby, Droplet, Layers, Filter, PlusCircle
+  Baby, Droplet, Layers, Filter, PlusCircle, Video, Pill, BarChart3
 } from "lucide-react";
 
 const SPECIALTY_MODULES = [
@@ -27,11 +33,17 @@ export default function PortalMedico() {
   } = useApp();
 
   const [selectedSpecialtyFilter, setSelectedSpecialtyFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'prontuario' | 'exames' | 'condutas'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'prontuario' | 'exames' | 'agenda' | 'analytics' | 'condutas'
   const [selectedPatientId, setSelectedPatientId] = useState("carla");
   const [recommendation, setRecommendation] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [selectedExame, setSelectedExame] = useState("Holter 24h & ECG Digital");
+
+  // Modal controls
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [isTelemedModalOpen, setIsTelemedModalOpen] = useState(false);
+  const [isNfcModalOpen, setIsNfcModalOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   // Telemetry simulation states
   const [liveFHR, setLiveFHR] = useState(144);
@@ -311,9 +323,9 @@ export default function PortalMedico() {
           </div>
         </div>
 
-        {/* ================= PATIENT SELECTOR BAR ================= */}
-        <div className="bg-[#112025]/90 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-2xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-2">
+        {/* ================= PATIENT SELECTOR & QUICK MEDICAL SUITE ACTIONS ================= */}
+        <div className="bg-[#112025]/90 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-2xl p-3.5 flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 shadow-sm">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold text-[#8CA9B0] uppercase tracking-wider font-poppins px-1">
               Prontuário Ativo:
             </span>
@@ -324,7 +336,7 @@ export default function PortalMedico() {
                   <button
                     key={p.id}
                     onClick={() => setSelectedPatientId(p.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold font-poppins transition-all cursor-pointer ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold font-poppins transition-all cursor-pointer ${
                       isSelected
                         ? "bg-gradient-to-r from-[#7EC8C0] to-[#5BB0A6] text-[#0C1618] shadow-sm font-black"
                         : "bg-[#0A1619] text-[#A6C5CB] border border-[#7EC8C0]/15 hover:border-[#7EC8C0]/40 hover:text-white"
@@ -344,17 +356,47 @@ export default function PortalMedico() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[#8CA9B0] font-medium bg-[#0A1619] px-3 py-1.5 rounded-xl border border-[#7EC8C0]/15">
-            <Activity size={13} className="text-[#7EC8C0]" />
-            <span>Condição: <strong className="text-white">{activePatient.riskConditions}</strong></span>
+          {/* Quick Action Trigger Buttons */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            <button
+              onClick={() => setIsTelemedModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-[#162B30] hover:bg-[#7EC8C0] text-[#7EC8C0] hover:text-[#0C1618] border border-[#7EC8C0]/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            >
+              <Video size={13} />
+              <span>Telemedicina</span>
+            </button>
+
+            <button
+              onClick={() => setIsPrescriptionModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-[#162B30] hover:bg-[#7EC8C0] text-[#7EC8C0] hover:text-[#0C1618] border border-[#7EC8C0]/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            >
+              <Pill size={13} />
+              <span>Receituário & QR</span>
+            </button>
+
+            <button
+              onClick={() => setIsNfcModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-[#162B30] hover:bg-[#7EC8C0] text-[#7EC8C0] hover:text-[#0C1618] border border-[#7EC8C0]/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            >
+              <Radio size={13} />
+              <span>NFC Hub Pro</span>
+            </button>
+
+            <button
+              onClick={() => setIsChatModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-[#162B30] hover:bg-[#7EC8C0] text-[#7EC8C0] hover:text-[#0C1618] border border-[#7EC8C0]/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            >
+              <MessageSquare size={13} />
+              <span>Canal Direct</span>
+            </button>
           </div>
         </div>
 
         {/* ================= NAVIGATION TABS ================= */}
-        <div className="flex border-b border-[#7EC8C0]/20 bg-[#101F24]/80 rounded-t-2xl overflow-hidden shadow-sm">
+        <div className="flex border-b border-[#7EC8C0]/20 bg-[#101F24]/80 rounded-t-2xl overflow-x-auto scrollbar-none shadow-sm">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`flex-1 py-3.5 text-center text-xs font-extrabold font-poppins tracking-wider uppercase transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3.5 px-4 text-center text-xs font-extrabold font-poppins tracking-wider uppercase whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "overview"
                 ? "border-[#7EC8C0] text-[#98D8D0] bg-[#7EC8C0]/10"
                 : "border-transparent text-[#8CA9B0] hover:text-white hover:bg-white/5"
@@ -366,7 +408,7 @@ export default function PortalMedico() {
 
           <button
             onClick={() => setActiveTab("prontuario")}
-            className={`flex-1 py-3.5 text-center text-xs font-extrabold font-poppins tracking-wider uppercase transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3.5 px-4 text-center text-xs font-extrabold font-poppins tracking-wider uppercase whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "prontuario"
                 ? "border-[#7EC8C0] text-[#98D8D0] bg-[#7EC8C0]/10"
                 : "border-transparent text-[#8CA9B0] hover:text-white hover:bg-white/5"
@@ -378,7 +420,7 @@ export default function PortalMedico() {
 
           <button
             onClick={() => setActiveTab("exames")}
-            className={`flex-1 py-3.5 text-center text-xs font-extrabold font-poppins tracking-wider uppercase transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3.5 px-4 text-center text-xs font-extrabold font-poppins tracking-wider uppercase whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "exames"
                 ? "border-[#7EC8C0] text-[#98D8D0] bg-[#7EC8C0]/10"
                 : "border-transparent text-[#8CA9B0] hover:text-white hover:bg-white/5"
@@ -389,22 +431,46 @@ export default function PortalMedico() {
           </button>
 
           <button
+            onClick={() => setActiveTab("agenda")}
+            className={`flex-1 py-3.5 px-4 text-center text-xs font-extrabold font-poppins tracking-wider uppercase whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "agenda"
+                ? "border-[#7EC8C0] text-[#98D8D0] bg-[#7EC8C0]/10"
+                : "border-transparent text-[#8CA9B0] hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Calendar size={15} />
+            <span>📅 Agenda & Triagem</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("analytics")}
+            className={`flex-1 py-3.5 px-4 text-center text-xs font-extrabold font-poppins tracking-wider uppercase whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "analytics"
+                ? "border-[#7EC8C0] text-[#98D8D0] bg-[#7EC8C0]/10"
+                : "border-transparent text-[#8CA9B0] hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <BarChart3 size={15} />
+            <span>📊 BI & Desfechos</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("condutas")}
-            className={`flex-1 py-3.5 text-center text-xs font-extrabold font-poppins tracking-wider uppercase transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3.5 px-4 text-center text-xs font-extrabold font-poppins tracking-wider uppercase whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "condutas"
                 ? "border-[#7EC8C0] text-[#98D8D0] bg-[#7EC8C0]/10"
                 : "border-transparent text-[#8CA9B0] hover:text-white hover:bg-white/5"
             }`}
           >
             <Zap size={15} />
-            <span>⚡ Condutas & Prescrições</span>
+            <span>⚡ Condutas</span>
           </button>
         </div>
 
         {/* ================= TAB 1: TELEMETRIA & BIO-MONITOR ================= */}
         {activeTab === "overview" && (
           <div className="space-y-5 animate-fadeIn">
-            {/* Live Cardiotocography or Adaptive Vital Monitor */}
+            {/* Live Bio-Monitor Card */}
             <div className="bg-[#112025]/90 backdrop-blur-xl border border-[#7EC8C0]/25 rounded-3xl p-5 shadow-md relative overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#7EC8C0]/15">
                 <div className="flex items-center gap-3">
@@ -472,7 +538,7 @@ export default function PortalMedico() {
                 </div>
               </div>
 
-              {/* Biomarkers Grid (Adaptive by Patient) */}
+              {/* Biomarkers Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-[#7EC8C0]/15">
                 <div className="bg-[#0A1619] p-2.5 rounded-xl border border-[#7EC8C0]/15 text-center">
                   <span className="text-[10px] font-bold text-[#8CA9B0] uppercase">Pressão Arterial</span>
@@ -606,7 +672,6 @@ export default function PortalMedico() {
         {activeTab === "prontuario" && (
           <div className="space-y-5 animate-fadeIn">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* Bio & NFC SOS Card */}
               <div className="bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-5 shadow-sm space-y-4">
                 <div className="flex items-center gap-3 pb-3 border-b border-[#7EC8C0]/15">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7EC8C0] to-[#5BB0A6] text-[#0C1618] flex items-center justify-center font-black text-lg shadow-sm">
@@ -641,7 +706,6 @@ export default function PortalMedico() {
                 </div>
               </div>
 
-              {/* Patient Bio Details & Multi-clinical Card */}
               <div className="lg:col-span-2 bg-[#112025]/85 backdrop-blur-xl border border-[#7EC8C0]/20 rounded-3xl p-5 shadow-sm space-y-4">
                 <h4 className="font-poppins font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2 text-[#98D8D0]">
                   <Clipboard size={14} className="text-[#7EC8C0]" />
@@ -760,7 +824,19 @@ export default function PortalMedico() {
           </div>
         )}
 
-        {/* ================= TAB 4: CONDUTAS & PRESCRIÇÕES ================= */}
+        {/* ================= TAB 4: AGENDA & TRIAGEM MANCHESTER ================= */}
+        {activeTab === "agenda" && (
+          <PresenzScheduleView 
+            onCallPatient={(app) => setSuccessMsg(`Chamada sonora e notificação enviada para ${app.patientName} na recepção!`)}
+          />
+        )}
+
+        {/* ================= TAB 5: BI & ANALYTICS ================= */}
+        {activeTab === "analytics" && (
+          <PresenzAnalyticsView />
+        )}
+
+        {/* ================= TAB 6: CONDUTAS & PRESCRIÇÕES ================= */}
         {activeTab === "condutas" && (
           <div className="space-y-5 animate-fadeIn">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -839,6 +915,38 @@ export default function PortalMedico() {
         )}
 
       </main>
+
+      {/* ================= ALL 6 INTEGRATED ADVANCED MODALS ================= */}
+      <PresenzPrescriptionModal
+        isOpen={isPrescriptionModalOpen}
+        onClose={() => setIsPrescriptionModalOpen(false)}
+        patient={activePatient}
+        doctorUser={doctorUser}
+        onPrescriptionIssued={(doc) => setSuccessMsg(`${doc.type === "receita" ? "Receita" : "Atestado"} gerado e assinado digitalmente com sucesso!`)}
+      />
+
+      <PresenzTelemedModal
+        isOpen={isTelemedModalOpen}
+        onClose={() => setIsTelemedModalOpen(false)}
+        patient={activePatient}
+        doctorUser={doctorUser}
+      />
+
+      <PresenzNFCHubModal
+        isOpen={isNfcModalOpen}
+        onClose={() => setIsNfcModalOpen(false)}
+        patient={activePatient}
+        onSaveNfcData={() => setSuccessMsg(`Dados gravados e sincronizados na Tag NFC de ${activePatient.name}!`)}
+      />
+
+      <PresenzChatDirectModal
+        isOpen={isChatModalOpen}
+        onClose={() => setIsChatModalOpen(false)}
+        patient={activePatient}
+        doctorUser={doctorUser}
+        onSendAlert={(msg) => setSuccessMsg(msg)}
+      />
+
     </div>
   );
 }
