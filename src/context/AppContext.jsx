@@ -160,34 +160,108 @@ export function AppProvider({ children }) {
   // ══════════════════════════════════════════════
   // COMMUNITY POSTS (persisted)
   // ══════════════════════════════════════════════
-  const [posts, setPosts] = useLocalStorage("mamae_posts", PREGNANCY_DATA.initialPosts);
+  const [posts, setPosts] = useLocalStorage("mamae_posts", PREGNANCY_DATA.initialPosts || []);
   const [userPostCount, setUserPostCount] = useLocalStorage("mamae_user_post_count", 0);
 
-  const addPost = (text) => {
+  const addPost = (postData) => {
+    // If called with string for backward-compatibility
+    const isString = typeof postData === "string";
+    const text = isString ? postData : postData.text;
+    const category = isString ? "geral" : (postData.category || "geral");
+    const categoryLabel = isString ? "Dúvidas Gerais" : (postData.categoryLabel || "Dúvidas Gerais");
+    const isAnonymous = !isString && !!postData.isAnonymous;
+    const tags = !isString && Array.isArray(postData.tags) ? postData.tags : ["#Comunidade"];
+
+    const isDoctor = userRole === "doctor";
+    const authorName = isAnonymous ? "Mamãe Anônima" : (isDoctor ? (doctorUser.name || "Dr(a). Obstetra") : (user.name || "Mamãe"));
+    const userHandle = isAnonymous ? "@anonima" : `@${authorName.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+    const avatar = isAnonymous ? "🔒" : (authorName[0]?.toUpperCase() || "M");
+    const badge = isAnonymous 
+      ? `Desabafo Acolhido · ${currentWeek}ª sem`
+      : isDoctor 
+        ? `Médico(a) · CRM ${doctorUser.crm || "184920"}`
+        : `Mamãe · ${currentWeek}ª sem`;
+
     const newPost = {
-      id: Date.now(),
-      author: user.name,
-      user: `@${user.name.toLowerCase().replace(/\s+/g, "")}`,
-      avatar: user.name[0].toUpperCase(),
+      id: `post_${Date.now()}`,
+      author: authorName,
+      user: userHandle,
+      avatar,
+      badge,
+      isDoctor,
+      isAnonymous,
+      timeAgo: "agora mesmo",
+      category,
+      categoryLabel,
+      tags,
       text,
       likes: 0,
       liked: false,
-      comments: 0,
+      saved: false,
+      comments: [],
       tab: "feed",
     };
-    setPosts((prev) => [newPost, ...prev]);
+
+    setPosts((prev) => [newPost, ...(Array.isArray(prev) ? prev : [])]);
     setUserPostCount((prev) => prev + 1);
   };
 
   const toggleLikePost = (postId) => {
     setPosts((prev) =>
-      prev.map((p) => {
+      (Array.isArray(prev) ? prev : []).map((p) => {
         if (p.id === postId) {
-          return { ...p, likes: p.liked ? p.likes - 1 : p.likes + 1, liked: !p.liked };
+          const wasLiked = !!p.liked;
+          const currentLikes = typeof p.likes === "number" ? p.likes : 0;
+          return { ...p, likes: wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1, liked: !wasLiked };
         }
         return p;
       })
     );
+  };
+
+  const toggleSavePost = (postId) => {
+    setPosts((prev) =>
+      (Array.isArray(prev) ? prev : []).map((p) => {
+        if (p.id === postId) {
+          return { ...p, saved: !p.saved };
+        }
+        return p;
+      })
+    );
+  };
+
+  const addCommentToPost = (postId, commentText) => {
+    if (!commentText || !commentText.trim()) return;
+    const isDoctor = userRole === "doctor";
+    const authorName = isDoctor ? (doctorUser.name || "Dr(a). Obstetra") : (user.name || "Mamãe");
+    const badge = isDoctor ? `Médico(a) CRM ${doctorUser.crm || "184920"}` : `Mamãe · ${currentWeek}ª sem`;
+
+    const newComment = {
+      id: `c_${Date.now()}`,
+      author: authorName,
+      badge,
+      isDoctor,
+      timeAgo: "agora mesmo",
+      text: commentText.trim(),
+      likes: 0,
+    };
+
+    setPosts((prev) =>
+      (Array.isArray(prev) ? prev : []).map((p) => {
+        if (p.id === postId) {
+          const currentComments = Array.isArray(p.comments) ? p.comments : [];
+          return {
+            ...p,
+            comments: [...currentComments, newComment],
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const deletePost = (postId) => {
+    setPosts((prev) => (Array.isArray(prev) ? prev.filter((p) => p.id !== postId) : []));
   };
 
   // ══════════════════════════════════════════════
@@ -769,7 +843,7 @@ export function AppProvider({ children }) {
         // Diary (Module 4)
         diaryEntries, addDiaryEntry, diaryStreak,
         // Community
-        posts, addPost, toggleLikePost,
+        posts, addPost, toggleLikePost, toggleSavePost, addCommentToPost, deletePost,
         // Calendar
         calendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, toggleCalendarEventDone, addQuestionToEvent, toggleQuestionDone,
         // Weight (Module 5)

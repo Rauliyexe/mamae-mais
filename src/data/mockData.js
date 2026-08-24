@@ -144,6 +144,144 @@ export const PREGNANCY_DATA = {
     },
   },
 
+  // ========== COMMUNITY / FORUM POSTS ==========
+  initialPosts: [
+    {
+      id: "post_1",
+      author: "Mariana Costa",
+      user: "@maricosta",
+      avatar: "M",
+      badge: "Mamãe de 1ª viagem · 24ª sem",
+      isDoctor: false,
+      isAnonymous: false,
+      timeAgo: "há 2 horas",
+      category: "clinica",
+      categoryLabel: "Dúvidas Clínicas",
+      tags: ["#MovimentoFetal", "#24Semanas", "#Chutinhos"],
+      text: "Meninas, estou na 24ª semana e comecei a sentir o bebê mexer bastante de madrugada! É normal eles serem mais ativos à noite ou quando a gente deita para descansar?",
+      likes: 18,
+      liked: false,
+      saved: false,
+      comments: [
+        {
+          id: "c1_1",
+          author: "Dra. Luiza Martins",
+          badge: "Obstetra CRM 159820",
+          isDoctor: true,
+          timeAgo: "há 1 hora",
+          text: "Super normal, Mariana! Durante o dia, o balanço da sua caminhada funciona como um ninho que embala o sono do bebê. Quando você relaxa à noite, ele acorda e aproveita o espaço!",
+          likes: 12
+        },
+        {
+          id: "c1_2",
+          author: "Beatriz Lima",
+          badge: "Mãe do Theo · 30ª sem",
+          isDoctor: false,
+          timeAgo: "há 35 min",
+          text: "Aqui é igualzinho! Toda vez que deito do lado esquerdo o Theo começa a festa na barriga haha!",
+          likes: 4
+        }
+      ],
+      tab: "feed"
+    },
+    {
+      id: "post_2",
+      author: "Dra. Camila Nogueira",
+      user: "@dracamilanogueira",
+      avatar: "C",
+      badge: "Especialista em Nutrição Materna",
+      isDoctor: true,
+      isAnonymous: false,
+      timeAgo: "há 5 horas",
+      category: "nutricao",
+      categoryLabel: "Alimentação & Saúde",
+      tags: ["#NutricaoGestacional", "#Ferro", "#Enjoos"],
+      text: "Dica de ouro para mamães no 2º trimestre: combinem sempre alimentos ricos em ferro vegetal (como feijão e espinafre) com uma fruta cítrica (laranja, tangerina, limão). A vitamina C triplica a absorção do ferro e previne a anemia gestacional!",
+      likes: 42,
+      liked: true,
+      saved: true,
+      comments: [
+        {
+          id: "c2_1",
+          author: "Carla Silva",
+          badge: "Mamãe · 17ª sem",
+          isDoctor: false,
+          timeAgo: "há 3 horas",
+          text: "Adorei a dica, Doutora! Já vou colocar uma rodela de laranja no meu almoço hoje.",
+          likes: 5
+        }
+      ],
+      tab: "recomendados"
+    },
+    {
+      id: "post_3",
+      author: "Mamãe Anônima",
+      user: "@anonima",
+      avatar: "🔒",
+      badge: "Desabafo Acolhido · 16ª sem",
+      isDoctor: false,
+      isAnonymous: true,
+      timeAgo: "há 8 horas",
+      category: "apoio",
+      categoryLabel: "Desabafos & Emoções",
+      tags: ["#Ansiedade", "#ApoioEmocional", "#Sentimentos"],
+      text: "Às vezes sinto um medo enorme de não saber cuidar direito do bebê quando nascer. Alguém mais se sente insegura mesmo querendo muito a maternidade?",
+      likes: 29,
+      liked: false,
+      saved: false,
+      comments: [
+        {
+          id: "c3_1",
+          author: "Juliana Mendes",
+          badge: "Mãe da Alice · 36ª sem",
+          isDoctor: false,
+          timeAgo: "há 6 horas",
+          text: "Todas nós sentimos isso, querida! O amor maternal nasce junto com o bebê e você vai aprender a cada dia. Você já é uma mãe incrível por se preocupar tanto!",
+          likes: 15
+        },
+        {
+          id: "c3_2",
+          author: "Fernanda Rocha",
+          badge: "Mãe de 2ª viagem",
+          isDoctor: false,
+          timeAgo: "há 4 horas",
+          text: "Até no segundo filho a gente tem dúvidas! Respira fundo, um passo de cada vez. Esse fórum está aqui para te apoiar sempre.",
+          likes: 9
+        }
+      ],
+      tab: "feed"
+    },
+    {
+      id: "post_4",
+      author: "Camila Vasconcelos",
+      user: "@camilav",
+      avatar: "C",
+      badge: "Mamãe do Bento · 28ª sem",
+      isDoctor: false,
+      isAnonymous: false,
+      timeAgo: "há 1 dia",
+      category: "enxoval",
+      categoryLabel: "Chá de Bebê & Nomes",
+      tags: ["#QuartoDoBebe", "#Enxoval", "#Dicas"],
+      text: "Qual item de enxoval vocês consideram INDISPENSÁVEL e qual foi o que menos usaram? Estou fechando a listinha essa semana e não quero gastar à toa!",
+      likes: 23,
+      liked: false,
+      saved: false,
+      comments: [
+        {
+          id: "c4_1",
+          author: "Patricia Gomes",
+          badge: "Mãe do Davi (6 meses)",
+          isDoctor: false,
+          timeAgo: "há 20 horas",
+          text: "Indispensável: trocador portátil impermeável e bodies com zíper de dois sentidos. O que menos usei: sapatos de recém-nascido e aquecedor de lenço!",
+          likes: 11
+        }
+      ],
+      tab: "feed"
+    }
+  ],
+
   // ========== NINA RESPONSES WITHOUT EMOJIS ==========
   ninaResponses: {
     greeting: "Olá, querida! Sou a Nina, sua assistente virtual de maternidade. Estou aqui para te ajudar com dúvidas, te apoiar emocionalmente e tornar essa jornada mais leve. Como posso te ajudar hoje?",
