@@ -1,8 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import TopBar from "../components/TopBar";
+import SmartwatchCard from "../components/SmartwatchCard";
 import { PREGNANCY_DATA } from "../data/mockData";
-import { Smile, Meh, Frown, Laugh, Play, ChevronRight, Activity, BookOpen, Sparkles, CalendarHeart } from "lucide-react";
+import { 
+  Smile, Meh, Frown, Laugh, Play, ChevronRight, Activity, 
+  BookOpen, Sparkles, CalendarHeart, ShieldAlert, Radio, Watch 
+} from "lucide-react";
 
 const MOODS = [
   { key: "triste", label: "Triste", Icon: Frown },
@@ -12,7 +16,10 @@ const MOODS = [
 ];
 
 export default function Inicio() {
-  const { user, currentWeek, daysRemaining, progressPercent, trimester, mood, setMood, navigate } = useApp();
+  const { 
+    user, currentWeek, daysRemaining, progressPercent, trimester, 
+    mood, setMood, navigate, triggerSOS, setIsNFCModalOpen 
+  } = useApp();
 
   const selectedWeekInfo = PREGNANCY_DATA.weeks[currentWeek] || {
     size: "Desconhecido", weight: "N/A", length: "N/A", dev: "Desenvolvimento contínuo."
@@ -85,6 +92,52 @@ export default function Inicio() {
           <p className="text-[12px] text-[#3D2B33] mt-3 leading-relaxed bg-[#FAF3F6]/20 rounded-xl p-3 border border-[#F0DDE4]/40 font-medium">
             {selectedWeekInfo.dev}
           </p>
+        </div>
+      </div>
+
+      {/* Smartwatch Bio-Telemetry Live Widget */}
+      <div className="px-5 mt-4">
+        <SmartwatchCard />
+      </div>
+
+      {/* Emergency & Wearables Dual Hub Bar */}
+      <div className="px-5 mt-4">
+        <div className="grid grid-cols-2 gap-3">
+          {/* SOS Emergency Trigger Button */}
+          <button
+            onClick={() => triggerSOS("Acionamento Rápido na Tela Inicial")}
+            className="p-3.5 rounded-card bg-gradient-to-br from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-sm border border-red-400/40 text-left flex items-center gap-3 active:scale-95 transition-all cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 border border-white/20">
+              <ShieldAlert size={20} className="animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-white/80 block">
+                Emergência
+              </span>
+              <h4 className="text-[13px] font-black font-poppins leading-tight">
+                SOS & Rota
+              </h4>
+            </div>
+          </button>
+
+          {/* NFC Wearables Hub (Card, Wristband, Keychain) */}
+          <button
+            onClick={() => setIsNFCModalOpen(true)}
+            className="p-3.5 rounded-card bg-white hover:bg-[#FAF3F6] border border-[#F0DDE4] shadow-mamae text-left flex items-center gap-3 active:scale-95 transition-all cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-[#FAF3F6] border border-[#F0DDE4] flex items-center justify-center shrink-0 text-[#D4638F]">
+              <Radio size={19} className="animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#8C6B7A] block">
+                Acessórios NFC
+              </span>
+              <h4 className="text-[12.5px] font-bold text-[#3D2B33] font-poppins leading-tight truncate">
+                Pulseira / Card
+              </h4>
+            </div>
+          </button>
         </div>
       </div>
 

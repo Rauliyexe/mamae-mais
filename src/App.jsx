@@ -22,6 +22,10 @@ import EditarEmergencia from "./screens/Perfil/EditarEmergencia";
 import PortalMedico from "./screens/PortalMedico";
 import BibliotecaExames from "./screens/BibliotecaExames";
 
+import SOSModal from "./components/SOSModal";
+import SmartwatchModal from "./components/SmartwatchModal";
+import NFCDevicesModal from "./components/NFCDevicesModal";
+
 function AppContent() {
   const { currentScreen, isLoggedIn } = useApp();
 
@@ -56,6 +60,11 @@ function AppContent() {
         {renderScreen()}
         <PWAInstallBanner />
       </PWALayout>
+
+      {/* Global Modals */}
+      <SOSModal />
+      <SmartwatchModal />
+      <NFCDevicesModal />
     </div>
   );
 }

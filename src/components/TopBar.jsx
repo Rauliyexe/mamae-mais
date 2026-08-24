@@ -1,9 +1,9 @@
 import React from "react";
-import { Bell, ChevronLeft } from "lucide-react";
+import { Bell, ChevronLeft, ShieldAlert } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 export default function TopBar({ title, showBack = false, onNotify, rightAction }) {
-  const { goBack, navigate, unreadCount } = useApp();
+  const { goBack, navigate, unreadCount, triggerSOS } = useApp();
 
   if (showBack) {
     return (
@@ -20,7 +20,13 @@ export default function TopBar({ title, showBack = false, onNotify, rightAction 
           {title}
         </h2>
         
-        <div className="w-9 h-9 shrink-0" />
+        <button
+          onClick={() => triggerSOS("Acionamento Rápido via Barra Superior")}
+          className="w-9 h-9 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center active:scale-90 transition-all shrink-0 hover:bg-red-100 cursor-pointer shadow-xs"
+          title="SOS Emergência"
+        >
+          <ShieldAlert size={18} className="animate-pulse" />
+        </button>
       </div>
     );
   }
@@ -37,6 +43,16 @@ export default function TopBar({ title, showBack = false, onNotify, rightAction 
       </div>
       
       <div className="flex items-center gap-2">
+        {/* SOS Emergency Button */}
+        <button
+          onClick={() => triggerSOS("Acionamento Rápido via Barra Superior")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-extrabold text-[11px] shadow-sm hover:from-red-700 hover:to-rose-700 active:scale-95 transition-all cursor-pointer font-poppins"
+          title="SOS Emergência"
+        >
+          <ShieldAlert size={14} className="animate-pulse text-white" />
+          <span>SOS</span>
+        </button>
+
         {/* Notification Bell with Badge */}
         <button
           onClick={() => navigate("notificacoes")}

@@ -465,9 +465,142 @@ export function AppProvider({ children }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const clearNotifications = () => setNotifications([]);
+  // ══════════════════════════════════════════════
+  // SOS & EMERGENCY SYSTEM
+  // ══════════════════════════════════════════════
+  const [isSOSModalOpen, setIsSOSModalOpen] = useState(false);
+  const [sosReason, setSosReason] = useState("");
+  const [emergencyContacts, setEmergencyContacts] = useLocalStorage("mamae_emergency_contacts", [
+    { id: "c1", name: "Lucas Silva", phone: "(11) 98844-2211", relationship: "Marido / Parceiro", isPrimary: true, wpp: "5511988442211" },
+    { id: "c2", name: "Dra. Luiza Martins", phone: "(11) 97722-3344", relationship: "Obstetra Responsável", isPrimary: false, wpp: "5511977223344" },
+    { id: "c3", name: "Dona Maria Silva", phone: "(11) 99123-4567", relationship: "Mãe / Rede Familiar", isPrimary: false, wpp: "5511991234567" },
+  ]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const triggerSOS = (reason = "Acionamento de Emergência") => {
+    setSosReason(reason);
+    setIsSOSModalOpen(true);
+    addNotification(
+      "health",
+      "🚨 Alerta SOS Acionado",
+      `Protocolo de emergência iniciado: ${reason}.`,
+      "inicio"
+    );
+  };
+
+  const addEmergencyContact = (contact) => {
+    const newContact = { id: `c_${Date.now()}`, ...contact };
+    setEmergencyContacts((prev) => [...prev, newContact]);
+  };
+
+  const updateEmergencyContact = (id, updated) => {
+    setEmergencyContacts((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)));
+  };
+
+  const deleteEmergencyContact = (id) => {
+    setEmergencyContacts((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  // ══════════════════════════════════════════════
+  // SMARTWATCH BIO-TELEMETRY (Live Simulation)
+  // ══════════════════════════════════════════════
+  const [isSmartwatchModalOpen, setIsSmartwatchModalOpen] = useState(false);
+  const [smartwatchState, setSmartwatchState] = useLocalStorage("mamae_smartwatch", {
+    connected: true,
+    deviceName: "Apple Watch Series 9",
+    battery: 88,
+    bpm: 76,
+    spo2: 99,
+    stress: 22, // percentage
+    stressLabel: "Baixo & Estável",
+    skinTemp: 36.6,
+    scenario: "repouso", // "repouso" | "caminhada" | "ansiedade" | "critico"
+    lastSync: "Agora mesmo",
+    fallDetectionArmed: true,
+  });
+
+  const [bpmHistory, setBpmHistory] = useState([74, 75, 76, 75, 78, 77, 76, 78]);
+
+  // Live heart rate oscillator simulation
+  useEffect(() => {
+    if (!smartwatchState.connected) return;
+    const interval = setInterval(() => {
+      setSmartwatchState((prev) => {
+        let baseBpm = 76;
+        if (prev.scenario === "caminhada") baseBpm = 96;
+        if (prev.scenario === "ansiedade") baseBpm = 118;
+        if (prev.scenario === "critico") baseBpm = 138;
+
+        const jitter = Math.floor(Math.random() * 5) - 2;
+        const currentBpm = Math.max(55, Math.min(170, baseBpm + jitter));
+        setBpmHistory((h) => [...h.slice(-15), currentBpm]);
+        return { ...prev, bpm: currentBpm };
+      });
+    }, 2400);
+
+    return () => clearInterval(interval);
+  }, [smartwatchState.connected, smartwatchState.scenario]);
+
+  const setSmartwatchScenario = (scenario) => {
+    const scenarioConfigs = {
+      repouso: { bpm: 74, spo2: 99, stress: 18, stressLabel: "Calmo & Saudável", scenario: "repouso" },
+      caminhada: { bpm: 96, spo2: 98, stress: 35, stressLabel: "Atividade Leve", scenario: "caminhada" },
+      ansiedade: { bpm: 118, spo2: 97, stress: 78, stressLabel: "Estresse Elevado", scenario: "ansiedade" },
+      critico: { bpm: 142, spo2: 94, stress: 94, stressLabel: "⚠️ ALERTA DE TAQUICARDIA", scenario: "critico" },
+    };
+
+    const nextConfig = scenarioConfigs[scenario] || scenarioConfigs.repouso;
+    setSmartwatchState((prev) => ({ ...prev, ...nextConfig }));
+
+    if (scenario === "critico") {
+      addNotification(
+        "health",
+        "⚠️ Taquicardia Detectada no Relógio",
+        "Seus batimentos ultrapassaram 140 BPM em repouso. Sugerimos acionar o SOS ou repousar.",
+        "inicio"
+      );
+    }
+  };
+
+  // ══════════════════════════════════════════════
+  // NFC WEARABLES ECOSYSTEM (Card, Wristband, Keychain)
+  // ══════════════════════════════════════════════
+  const [isNFCModalOpen, setIsNFCModalOpen] = useState(false);
+  const [nfcWearables, setNfcWearables] = useLocalStorage("mamae_nfc_wearables", {
+    card: {
+      id: "NFC-MAMAE-0941",
+      name: "Cartão NFC de Emergência",
+      type: "card",
+      subtitle: "Carteira física & Consultas",
+      active: true,
+      lastSync: "Hoje às 08:30",
+      broadcastFields: ["fullName", "bloodType", "gestationalWeek", "contactName", "contactPhone", "hospital", "allergies"],
+    },
+    wristband: {
+      id: "NFC-PULSEIRA-8812",
+      name: "Pulseira Médica Inteligente",
+      type: "wristband",
+      subtitle: "Uso contínuo no pulso",
+      active: true,
+      lastSync: "Hoje às 08:30",
+      broadcastFields: ["fullName", "bloodType", "gestationalWeek", "contactName", "contactPhone", "hospital", "allergies", "riskConditions"],
+    },
+    keychain: {
+      id: "NFC-CHAVEIRO-5541",
+      name: "Chaveiro de Resgate",
+      type: "keychain",
+      subtitle: "Bolsa de maternidade & Chaves",
+      active: true,
+      lastSync: "Hoje às 08:30",
+      broadcastFields: ["fullName", "bloodType", "gestationalWeek", "contactName", "contactPhone", "hospital"],
+    },
+  });
+
+  const updateNFCWearable = (key, updates) => {
+    setNfcWearables((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], ...updates },
+    }));
+  };
 
   // ══════════════════════════════════════════════
   // DAILY TIP (Module 7)
@@ -812,8 +945,13 @@ export function AppProvider({ children }) {
         kickSessions, activeKickSession, startKickSession, registerKick, endKickSession,
         // Chat (Module 7)
         chatHistory, addChatMessage, clearChatHistory, chatMessagesSent, getDailyTip,
-        // Notifications (Module 3)
-        notifications, addNotification, markNotificationRead, markAllNotificationsRead, clearNotifications, unreadCount,
+        // SOS & Emergency
+        isSOSModalOpen, setIsSOSModalOpen, sosReason, setSosReason, triggerSOS,
+        emergencyContacts, setEmergencyContacts, addEmergencyContact, updateEmergencyContact, deleteEmergencyContact,
+        // Smartwatch Telemetry
+        isSmartwatchModalOpen, setIsSmartwatchModalOpen, smartwatchState, setSmartwatchState, bpmHistory, setSmartwatchScenario,
+        // NFC Wearables
+        isNFCModalOpen, setIsNFCModalOpen, nfcWearables, setNfcWearables, updateNFCWearable,
         // Onboarding
         onboardingCompleted,
         // Medical Portal & Document Library
