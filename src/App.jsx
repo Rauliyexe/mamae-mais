@@ -63,7 +63,6 @@ function AchievementToast() {
   );
 }
 
-import NinaMascot from "./components/NinaMascot";
 import PortalMedico from "./screens/PortalMedico";
 import BibliotecaExames from "./screens/BibliotecaExames";
 
@@ -93,8 +92,6 @@ function AppContent() {
     }
   };
 
-  const hideMascot = ["login", "cadastro", "formulario", "portalmedico", "bibliotecaexames"].includes(currentScreen);
-
   return (
     <div className="relative w-full h-full min-h-[100dvh]">
       <PWALayout 
@@ -105,7 +102,6 @@ function AppContent() {
         <AchievementToast />
         <PWAInstallBanner />
       </PWALayout>
-      {isLoggedIn && !hideMascot && <NinaMascot />}
     </div>
   );
 }
